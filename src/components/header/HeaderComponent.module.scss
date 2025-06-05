@@ -1,5 +1,15 @@
 .header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 3rem;
+  background-color: #333;
+  padding: 1rem 2rem;
+}
+
+.left, .right {
+  flex-grow: 1;
+  flex-basis: 0;
+}
+
+.right {
+  text-align: right;
 }

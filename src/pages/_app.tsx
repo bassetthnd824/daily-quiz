@@ -7,7 +7,9 @@ const App = ({ Component, pageProps }: AppProps) => {
   return (
       <>
         <HeaderComponent/>
-        <Component {...pageProps} />
+        <main>
+          <Component {...pageProps} />
+        </main>
         <FooterComponent/>
       </>
   )
