@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useState } from "react";
-import { SessionData } from '@/models/session-data.types';
+import { SessionData } from '@/models/session-data.model';
 
 type UserContextObj = {
   sessionData?: SessionData,
