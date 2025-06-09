@@ -1,6 +1,8 @@
+import { NavMenu } from "@/components/nav-menu/NavMenu";
+
 const HomeComponent = () => {
   return (
-    <h1>Daily Quiz</h1>
+    <NavMenu usageClass="homepageNav"></NavMenu>
   )
 }
 

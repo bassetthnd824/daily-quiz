@@ -1,1 +1,1 @@
-export { default } from '@/components/pages/sign-in/SignInComponent'
+export { default } from '@/components/pages/home/HomeComponent'

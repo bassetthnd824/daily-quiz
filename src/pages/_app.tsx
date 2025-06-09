@@ -1,18 +1,9 @@
 import "@/styles/globals.scss";
-import FooterComponent from '@/components/footer/FooterComponent';
-import HeaderComponent from '@/components/header/HeaderComponent';
+import Layout from '@/components/layout/layout/Layout';
 import type { AppProps } from "next/app";
 
 const App = ({ Component, pageProps }: AppProps) => {
-  return (
-      <>
-        <HeaderComponent/>
-        <main>
-          <Component {...pageProps} />
-        </main>
-        <FooterComponent/>
-      </>
-  )
+  return <Layout><Component {...pageProps} /></Layout>
 }
 
 export default App

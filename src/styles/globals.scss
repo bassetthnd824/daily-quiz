@@ -1,6 +1,12 @@
+@use "sass:color";
+
 :root {
-  --background: #333;
+  --background: #666;
   --foreground: #ededed;
+  --primary: #0d6efd;
+  --darkened-primary: #{color.adjust(#0d6efd, $lightness: -10%)};
+  --dark-gray: #333;
+  --white: #fff;
 }
 
 html,
@@ -14,6 +20,7 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
   font-size: 1rem;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -33,23 +40,49 @@ a {
   }
 }
 
-#__next {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-bottom: 1rem;
 }
 
-main {
-  padding: 2rem;
-  flex: 1;
-  background-color: #666;
+form {
+  padding: 1rem 0;
+
+  label {
+    display: block;
+    margin-bottom: .25rem;
+  }
+
+  input, textarea, select {
+    display: block;
+    border: .0625rem solid #000;
+    padding: .75rem 1rem;
+    font-size: inherit;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
 }
 
 button {
-  font-size: 1rem;
+  background-color: var(--primary);
+  color: var(--white);
+  border: .0625rem solid transparent;
+  font-size: inherit;
+  padding: .75rem 1rem;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--darkened-primary);
+    border-color: var(--darkened-primary);
+  }
 }
 
 .btn-link {
+  padding: 0;
   background-color: inherit;
   color: inherit;
   border: 0;
@@ -57,5 +90,6 @@ button {
 
   &:hover {
     text-decoration: underline;
+    background-color: transparent;
   }
 }

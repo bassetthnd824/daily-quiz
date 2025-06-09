@@ -1,16 +1,31 @@
-import { setUserName } from '@/util/user';
 import Head from "next/head";
 import { useRouter } from 'next/router';
-import { useRef } from 'react';
-import xss from 'xss';
+import { FormEvent, useContext } from 'react';
+import { UserContext } from '@/context/user-context';
+import classes from './SignIn.module.scss'
 
 const SignInComponent = () => {
-  const userNameRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const { setSessionData } = useContext(UserContext)
 
-  const handleSignInClick = () => {
-    setUserName(xss(userNameRef.current!.value))
-    router.push('/home').then()
+  const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const username = formData.has('username') ? formData.get('username') as string : ''
+
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    })
+
+    if (response.ok) {
+      setSessionData({ username })
+      await router.push('/home')
+    } else {
+      // Handle errors
+    }
   }
 
   return (
@@ -20,11 +35,14 @@ const SignInComponent = () => {
         <meta name="description" content="An app for a daily quiz" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <div>
+      <h2>Sign In</h2>
+      <form onSubmit={handleFormSubmit}>
         <label htmlFor="username">User Name</label>
-        <input type="text" id="username" ref={userNameRef}/>
-        <button type="button" onClick={handleSignInClick}>Sign In</button>
-      </div>
+        <input type="text" id="username" name="username" />
+        <div className={classes.actions}>
+          <button type="submit">Sign In</button>
+        </div>
+      </form>
     </>
   );
 }
