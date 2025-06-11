@@ -1,0 +1,20 @@
+.progress {
+  width: 100%;
+  margin-bottom: 1rem;
+
+  &::-webkit-progress-bar {
+    background: var(--primary);
+  }
+
+  &::-webkit-progress-value {
+    background: var(--white);
+  }
+
+  &.answered::-webkit-progress-bar {
+    background: var(--warning);
+  }
+
+  &.answered::-webkit-progress-value {
+    background: var(--white);
+  }
+}

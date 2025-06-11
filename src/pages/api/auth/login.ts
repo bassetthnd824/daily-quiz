@@ -1,7 +1,7 @@
 import { encrypt } from '@/util/encrypt';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { serialize } from 'cookie'
-import { SessionData } from '@/models/session-data.types'
+import { SessionData } from '@/models/session-data.model'
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const sessionData: SessionData = req.body

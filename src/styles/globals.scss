@@ -5,8 +5,12 @@
   --foreground: #ededed;
   --primary: #0d6efd;
   --darkened-primary: #{color.adjust(#0d6efd, $lightness: -10%)};
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --success: #198754;
   --dark-gray: #333;
   --white: #fff;
+
 }
 
 html,

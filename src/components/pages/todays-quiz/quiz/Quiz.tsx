@@ -1,0 +1,48 @@
+import { Question } from '@/models/question.model'
+import { useCallback, useState } from 'react'
+import classes from './Quiz.module.scss'
+import QuestionComponent from '@/components/pages/todays-quiz/question/Question'
+import Summary from '@/components/pages/todays-quiz/summary/Summary'
+
+export type QuizProps = {
+  questions: Question[]
+}
+
+export type AnswerState = '' | 'answered' | 'correct' | 'wrong'
+
+export const QUESTION_TIME = 10000
+export const SELECTED_TIME = 1000
+export const CORRECT_TIME = 2000
+
+const Quiz = ({ questions }: QuizProps) => {
+  const [userAnswers, setUserAnswers] = useState<string[]>([])
+
+  const activeQuestionIndex = userAnswers.length
+  const quizIsComplete = activeQuestionIndex === questions.length
+
+  const handleSelectAnswer = useCallback((selectedAnswer: string) => {
+    setUserAnswers((prevUserAnswers) => {
+      console.log('selected answer', selectedAnswer)
+      return [...prevUserAnswers, selectedAnswer]
+    })
+  }, [])
+
+  const handleSkipAnswer = useCallback(() => handleSelectAnswer(''), [handleSelectAnswer])
+
+  if (quizIsComplete) {
+    return <Summary userAnswers={userAnswers} questions={questions}/>
+  }
+
+  return (
+    <div className={classes.quiz}>
+      <QuestionComponent
+        key={activeQuestionIndex}
+        question={questions.length > 0 ? questions[activeQuestionIndex] : undefined}
+        onSelectAnswer={handleSelectAnswer}
+        onSkipAnswer={handleSkipAnswer}
+      />
+    </div>
+  )
+}
+
+export default Quiz
