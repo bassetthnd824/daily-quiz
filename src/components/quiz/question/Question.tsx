@@ -1,12 +1,12 @@
-import classes from '@/components/pages/todays-quiz/question/Question.module.scss'
-import QuestionTimer from '@/components/pages/todays-quiz/question-timer/QuestionTimer'
-import Answers from '@/components/pages/todays-quiz/answers/Answers'
+import classes from '@/components/quiz/question/Question.module.scss'
+import QuestionTimer from '@/components/quiz/question-timer/QuestionTimer'
+import Answers from '@/components/quiz/answers/Answers'
 import {
   AnswerState,
   CORRECT_TIME,
   QUESTION_TIME,
   SELECTED_TIME,
-} from '@/components/pages/todays-quiz/quiz/Quiz'
+} from '@/components/quiz/quiz/Quiz'
 import { Question as QuestionModel } from '@/models/question.model'
 import { useState } from 'react'
 

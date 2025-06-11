@@ -10,7 +10,6 @@
   --success: #198754;
   --dark-gray: #333;
   --white: #fff;
-
 }
 
 html,
@@ -82,6 +81,12 @@ button {
   &:hover {
     background-color: var(--darkened-primary);
     border-color: var(--darkened-primary);
+  }
+
+  &:disabled,
+  &:disabled:hover {
+    background-color: var(--background);
+    border-color: var(--background)
   }
 }
 

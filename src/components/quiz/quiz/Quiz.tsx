@@ -1,8 +1,8 @@
 import { Question } from '@/models/question.model'
 import { useCallback, useState } from 'react'
 import classes from './Quiz.module.scss'
-import QuestionComponent from '@/components/pages/todays-quiz/question/Question'
-import Summary from '@/components/pages/todays-quiz/summary/Summary'
+import QuestionComponent from '@/components/quiz/question/Question'
+import Summary from '@/components/quiz/summary/Summary'
 
 export type QuizProps = {
   questions: Question[]

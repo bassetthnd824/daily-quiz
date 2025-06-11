@@ -1,6 +1,6 @@
 import classes from './QuestionTimer.module.scss'
 import { useEffect, useState } from 'react'
-import { AnswerState } from '@/components/pages/todays-quiz/quiz/Quiz'
+import { AnswerState } from '@/components/quiz/quiz/Quiz'
 
 export type QuestionTimerProps = {
   timeout: number

@@ -1,0 +1,46 @@
+.previousQuiz {
+  background-color: var(--dark-gray);
+  border: 0.0625rem solid transparent;
+  border-radius: .5rem;
+  padding: 2rem;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+}
+
+.calendar {
+  border: 0.0625rem solid var(--white)
+}
+
+.monthYearRow {
+  padding: 1rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  & h3 {
+    margin: 0 1rem;
+  }
+}
+
+.calendarRow {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.calendarDay {
+  flex-basis: 14.28%;
+  flex-grow: 1;
+  text-align: center;
+  padding: 0.25rem;
+  border: 0.0625rem solid var(--white);
+  font-size: 1.25rem;
+}
+
+.previousQuizLink {
+  display: block;
+}

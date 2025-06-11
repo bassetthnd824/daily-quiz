@@ -1,5 +1,5 @@
-import classes from '@/components/pages/todays-quiz/answers/Answers.module.scss'
-import { AnswerState } from '@/components/pages/todays-quiz/quiz/Quiz'
+import classes from '@/components/quiz/answers/Answers.module.scss'
+import { AnswerState } from '@/components/quiz/quiz/Quiz'
 import { useRef } from 'react'
 
 export type AnswersProps = {
