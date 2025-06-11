@@ -1,18 +1,20 @@
 import classes from './QuestionTimer.module.scss'
 import { useEffect, useState } from 'react'
+import { AnswerState } from '@/components/pages/todays-quiz/quiz/Quiz'
 
 export type QuestionTimerProps = {
   timeout: number
-  onTimeout: () => void
+  onTimeout: (() => void) | null
+  mode: AnswerState
 }
 
 const UPDATE_INTERVAL = 100
 
-const QuestionTimer = ({ timeout, onTimeout }: QuestionTimerProps) => {
+const QuestionTimer = ({ timeout, onTimeout, mode }: QuestionTimerProps) => {
   const [remainingTime, setRemainingTime] = useState(timeout)
 
   useEffect(() => {
-    const timer = setTimeout(onTimeout, timeout)
+    const timer = setTimeout(onTimeout!, timeout)
 
     return () => {
       clearTimeout(timer)
@@ -29,7 +31,7 @@ const QuestionTimer = ({ timeout, onTimeout }: QuestionTimerProps) => {
     }
   }, [])
 
-  return <progress className={classes.progress} max={timeout} value={remainingTime}/>
+  return <progress className={`${classes.progress} ${mode}`} max={timeout} value={remainingTime} />
 }
 
 export default QuestionTimer

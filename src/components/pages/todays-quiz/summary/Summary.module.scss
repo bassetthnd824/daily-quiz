@@ -1,0 +1,73 @@
+.summary {
+  background-color: var(--dark-gray);
+  border: 0.0625rem solid transparent;
+  border-radius: .5rem;
+  padding: 2rem;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+}
+
+.summaryStats {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+
+  p {
+    display: flex;
+  }
+
+  .number {
+    margin-right: .5rem;
+    width: 2.75rem;
+    text-align: right;
+  }
+}
+
+.answerRow {
+  display: flex;
+  align-items: stretch;
+
+  .answerNumber {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: right;
+    padding: .75rem;
+    border: 0.0625rem solid var(--white);
+  }
+
+  .answerQuestion {
+    flex-grow: 1;
+    padding: .75rem;
+    border: 0.0625rem solid var(--white);
+    border-left: 0;
+  }
+
+  .question {
+    margin-bottom: .25rem;
+    padding: .375rem;
+  }
+
+  .userAnswer {
+    padding: .375rem;
+
+    &.correct {
+      background-color: var(--success);
+    }
+
+    &.wrong {
+      background-color: var(--danger);
+    }
+
+    &.skipped {
+      background-color: var(--warning);
+      color: var(--dark-gray);
+    }
+  }
+}

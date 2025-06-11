@@ -1,7 +1,6 @@
 import { quizDao } from '@/api/dao/quiz.dao'
 import { getCurrentDate } from '@/util/utility'
 import { questionDao } from '@/api/dao/question.dao'
-import { Question } from '@/models/question.model'
 
 const MAX_DAILY_QUESTIONS = 5
 
@@ -26,29 +25,10 @@ const getQuizForDate = (date: string) => {
 }
 
 const getRandomQuestions = () => {
-  const questions = questionDao.getQuestions()
-  console.log('eligible questions', questions)
-  const randomQuestions: Question[] = []
-  const usedIndecies: number[] = []
+  const randomQuestions = [...questionDao.getQuestions()]
+  randomQuestions.sort(() => Math.random() - 0.5)
 
-  for (let i = 0; i < MAX_DAILY_QUESTIONS; i++) {
-    console.log(`iteration ${i}`)
-    let index: number = 0
-    let indexUsed = true;
-
-    while (indexUsed) {
-      index = Math.floor(Math.random() * questions.length)
-      console.log('random index', index)
-      console.log('used indecies', usedIndecies)
-      indexUsed = usedIndecies.findIndex(usedIndex => usedIndex === index) >= 0
-      console.log('indexUsed', indexUsed)
-    }
-
-    usedIndecies.push(index)
-    randomQuestions.push(questions[index])
-  }
-
-  return randomQuestions
+  return randomQuestions.slice(0, MAX_DAILY_QUESTIONS)
 }
 
 export const quizService = {

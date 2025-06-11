@@ -29,7 +29,14 @@ const Answers = ({ answers, selectedAnswer, answerState, onSelect }: AnswersProp
 
         return (
           <li key={answer} className={classes.answer}>
-            <button type="button" className={cssClass ? classes[cssClass] : ''} onClick={() => onSelect(answer)}>{answer}</button>
+            <button
+              type="button"
+              className={cssClass ? classes[cssClass] : ''}
+              onClick={() => onSelect(answer)}
+              disabled={answerState !== ''}
+            >
+              {answer}
+            </button>
           </li>
         )
       })}
