@@ -11,7 +11,7 @@ const getTodaysQuiz = async (): Promise<Quiz> => {
 }
 
 const getQuizForDate = async (date: string): Promise<Quiz> => {
-  let quiz = quizDao.getQuizForDate(date)
+  let quiz = await quizDao.getQuizForDate(date)
 
   if (!quiz) {
     quiz = {
@@ -20,6 +20,7 @@ const getQuizForDate = async (date: string): Promise<Quiz> => {
     }
 
     quizDao.addQuiz(quiz)
+    questionDao.setLastUsedDate(quiz.questions)
   }
 
   return quiz

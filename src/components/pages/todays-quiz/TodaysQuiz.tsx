@@ -27,6 +27,7 @@ const TodaysQuiz = () => {
     <>
       {loading && <div>Loading...</div>}
       {!loading && <Quiz questions={questions}></Quiz>}
+      {error && <div>{error}</div>}
     </>
   )
 }
