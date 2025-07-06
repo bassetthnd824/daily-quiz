@@ -1,16 +1,34 @@
-import { quizService } from '@/api/service/quiz.service'
 import Quiz from '@/components/quiz/quiz/Quiz'
 import { Question } from '@/models/question.model'
 import { useEffect, useState } from 'react'
 
 const TodaysQuiz = () => {
+  const [loading, setLoading] = useState(true)
   const [questions, setQuestions] = useState<Question[]>([])
+  const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    setQuestions(quizService.getTodaysQuiz().questions)
+    const getQuiz = async () => {
+      try {
+        const data = await fetch('/api/quiz/todays-quiz')
+        const quiz = await data.json()
+        setQuestions(quiz.questions)
+      } catch (error) {
+        setError(error as unknown as string)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    getQuiz()
   }, [])
 
-  return <Quiz questions={questions}></Quiz>
+  return (
+    <>
+      {loading && <div>Loading...</div>}
+      {!loading && <Quiz questions={questions}></Quiz>}
+    </>
+  )
 }
 
 export default TodaysQuiz

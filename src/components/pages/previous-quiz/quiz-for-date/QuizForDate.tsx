@@ -1,4 +1,4 @@
-import { quizService } from '@/api/service/quiz.service'
+import { quizService } from '@/services/quiz.service'
 import Quiz from '@/components/quiz/quiz/Quiz'
 import { Question } from '@/models/question.model'
 import { useEffect, useState } from 'react'

@@ -7,7 +7,7 @@ const getQuizForDate = (date: string) => {
 }
 
 const addQuiz = (quiz: Quiz) => {
-  quizes.push(quiz)
+  //quizes.push(quiz)
 }
 
 export const quizDao = {

@@ -22,7 +22,6 @@ const Quiz = ({ questions }: QuizProps) => {
 
   const handleSelectAnswer = useCallback((selectedAnswer: string) => {
     setUserAnswers((prevUserAnswers) => {
-      console.log('selected answer', selectedAnswer)
       return [...prevUserAnswers, selectedAnswer]
     })
   }, [])
