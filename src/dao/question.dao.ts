@@ -1,5 +1,4 @@
-import { collection, query, where, getDocs, and, updateDoc, doc } from 'firebase/firestore'
-import { db } from './firebase.config'
+import { firestore } from '@/firebase/server'
 import dayjs from 'dayjs'
 import { DATE_FORMAT, getCurrentDate } from '@/util/utility'
 import { Question } from '@/models/question.model'
@@ -8,23 +7,25 @@ const QUESTIONS = 'questions'
 
 const getQuestions = async (): Promise<Question[]> => {
   const thirtyDaysAgo = dayjs().subtract(30, 'day')
-  const q = query(collection(db, QUESTIONS), and(where('status', '==', 'A'), where('lastUsedDate', '<', thirtyDaysAgo.format(DATE_FORMAT))));
+  const results = await firestore
+    ?.collection(QUESTIONS)
+    .where('status', '==', 'A')
+    .where('lastUsedDate', '<', thirtyDaysAgo.format(DATE_FORMAT))
+    .get()
+  let questions: Question[] = []
 
-  const querySnapshot = await getDocs(q);
-  const questions: Question[] = []
-
-  querySnapshot.docs.forEach((doc) => {
-    const docData = doc.data()
-    console.log('docData', docData)
-
-    questions.push({
-      id: doc.id,
-      answers: docData.answers,
-      lastUsedDate: docData.lastUsedDate,
-      status: docData.status,
-      text: docData.text,
+  if (results) {
+    questions = results.docs.map((doc) => {
+      const docData = doc.data()
+      return {
+        id: docData.id,
+        text: docData.text,
+        answers: docData.answers,
+        lastUsedDate: docData.lastUsedDate,
+        status: docData.status,
+      }
     })
-  })
+  }
 
   console.log('questions', questions)
   return questions
@@ -32,9 +33,7 @@ const getQuestions = async (): Promise<Question[]> => {
 
 const setLastUsedDate = async (questions: Question[]) => {
   for (const question of questions) {
-    await updateDoc(doc(db, QUESTIONS, question.id), {
-      lastUsedDate: getCurrentDate()
-    })
+    await firestore?.doc(`${QUESTIONS}/${question.id}`).set({ lastUsedDate: getCurrentDate() }, { merge: true })
   }
 }
 
