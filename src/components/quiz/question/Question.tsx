@@ -42,21 +42,18 @@ const Question = ({
   }
 
   const handleSelectAnswer = (answer: string) => {
-    console.log('set answer.  start timer.', answer)
     setAnswer({
       selectedAnswer: answer,
       isCorrect: null,
     })
 
     setTimeout(() => {
-      console.log('set answer with isCorrect.')
       setAnswer({
         selectedAnswer: answer,
         isCorrect: question!.answers[0] === answer,
       })
 
       setTimeout(() => {
-        console.log('pass the event upstairs.')
         onSelectAnswer(answer)
       }, CORRECT_TIME)
     }, SELECTED_TIME)

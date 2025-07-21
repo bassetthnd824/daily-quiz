@@ -7,7 +7,6 @@ export type SummaryProps = {
 }
 
 const Summary = ({ userAnswers, questions }: SummaryProps) => {
-  console.log(userAnswers)
   const skippedAnswers = userAnswers.filter((answer) => answer === null);
   const correctAnswers = userAnswers.filter(
     (answer, index) => answer === questions[index].answers[0]

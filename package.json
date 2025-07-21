@@ -3,17 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "set NEXT_PUBLIC_APP_ENV='emulator' && next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "emulators": "firebase emulators:exec 'npm test'"
   },
   "dependencies": {
     "cookie": "^1.0.2",
     "dayjs": "^1.11.13",
+    "firebase": "^11.10.0",
+    "firebase-admin": "^13.4.0",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-loading-hook": "^1.1.2",
     "xss": "^1.0.15"
   },
   "devDependencies": {
