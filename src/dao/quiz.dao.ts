@@ -23,7 +23,7 @@ const getQuizForDate = async (date: string): Promise<Quiz | undefined> => {
 }
 
 const addQuiz = async (quiz: Quiz) => {
-  await firestore?.collection(QUIZZES).add({ ...quiz })
+  await firestore?.doc(`${QUIZZES}/${quiz.date}`).create({ ...quiz })
 }
 
 export const quizDao = {

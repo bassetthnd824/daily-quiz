@@ -1,10 +1,21 @@
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+export const SESSION_COOKIE = 'daily-quiz-session'
+
 // This function can be marked `async` if using `await` inside
-export function middleware(request: NextRequest) {
-  if (!request.cookies.has('session')) {
-    return NextResponse.redirect(new URL('/sign-in', request.url))
+export const middleware = async (request: NextRequest) => {
+  const cookieStore = await cookies()
+
+  if (!cookieStore.has(SESSION_COOKIE)) {
+    if (!request.url.endsWith('/sign-in')) {
+      return NextResponse.redirect(new URL('/sign-in', request.url))
+    }
+  } else {
+    if (request.url.endsWith('/sign-in')) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
   }
 }
 
@@ -18,6 +29,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
-    '/((?!api|_next/static|_next/image|sign-in|favicon.ico|sitemap.xml|robots.txt).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 }

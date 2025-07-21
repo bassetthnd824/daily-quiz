@@ -1,7 +1,10 @@
-import { NavMenu } from "@/components/nav-menu/NavMenu";
+'use client'
+
+import { NavMenu } from '@/components/nav-menu/NavMenu'
+import { useAuth } from '@/context/user-context'
 
 export const HeaderMenu = () => {
-  return (
-    <NavMenu usageClass="headerNav"></NavMenu>
-  )
+  const auth = useAuth()
+
+  return <>{auth?.currentUser && <NavMenu usageClass="headerNav"></NavMenu>}</>
 }

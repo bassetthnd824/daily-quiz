@@ -29,7 +29,6 @@ const getQuizForDate = async (date: string): Promise<Quiz> => {
 const getRandomQuestions = async (): Promise<Question[]> => {
   const randomQuestions = [...(await questionDao.getQuestions())]
   randomQuestions.sort(() => Math.random() - 0.5)
-
   return randomQuestions.slice(0, MAX_DAILY_QUESTIONS)
 }
 

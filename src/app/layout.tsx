@@ -3,6 +3,7 @@ import HeaderComponent from '@/components/layout/header/HeaderComponent'
 import React, { ReactNode } from 'react'
 import classes from './layout.module.scss'
 import UserContextProvider from '@/context/user-context'
+import './ui/globals.scss'
 
 export type LayoutProps = {
   children: ReactNode

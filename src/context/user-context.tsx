@@ -2,7 +2,7 @@
 
 import { auth } from '@/firebase/client'
 import { QuizUser, UserProfile } from '@/models/user-profile.model'
-import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth'
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
 export type UserContextValue = {
@@ -15,6 +15,35 @@ export const UserContext = createContext<UserContextValue | null>(null)
 
 const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<QuizUser | null>(null)
+  const [sessionChecked, setSessionChecked] = useState<boolean>(false)
+
+  useEffect(() => {
+    const getUserSession = async () => {
+      if (currentUser) {
+        setSessionChecked(true)
+        return
+      }
+
+      const response = await await fetch('/api/auth/session')
+
+      if (!response.ok) {
+        setSessionChecked(true)
+        return
+      }
+
+      const user: QuizUser | undefined = await response.json()
+
+      if (user) {
+        setCurrentUser(user)
+      }
+
+      setSessionChecked(true)
+    }
+
+    if (!sessionChecked) {
+      getUserSession()
+    }
+  }, [currentUser, sessionChecked])
 
   useEffect(() => {
     if (!auth) {
@@ -26,7 +55,17 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
         setCurrentUser(null)
       } else {
         let userProfile: UserProfile
-        const userResponse = await fetch(`/api/users/${user.uid}`)
+        const userResponse = await fetch(`/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            idToken: await user.getIdToken(),
+            userId: user.uid,
+          }),
+        })
 
         if (userResponse.ok) {
           const userJson = await userResponse.json()
@@ -36,7 +75,12 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
             }
 
             setCurrentUser({
-              ...user,
+              uid: user.uid,
+              email: user.email ? user.email : undefined,
+              emailVerified: user.emailVerified,
+              displayName: user.displayName ? user.displayName : undefined,
+              photoURL: user.photoURL ? user.photoURL : undefined,
+              phoneNumber: user.phoneNumber ? user.phoneNumber : undefined,
               ...userProfile,
             })
           } else {
@@ -56,7 +100,7 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
         return
       }
 
-      signInWithRedirect(auth, new GoogleAuthProvider())
+      signInWithPopup(auth, new GoogleAuthProvider())
         .then(() => {
           console.log('Signed In')
           resolve()
@@ -75,11 +119,24 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
         return
       }
 
-      auth
-        .signOut()
-        .then(() => {
-          console.log('Signed out')
-          resolve()
+      fetch('/api/auth/logout')
+        .then((response) => {
+          if (response.ok) {
+            setCurrentUser(null)
+
+            auth
+              ?.signOut()
+              .then(() => {
+                console.log('Signed out')
+                resolve()
+              })
+              .catch(() => {
+                resolve()
+              })
+          } else {
+            console.log('Something went wrong')
+            reject()
+          }
         })
         .catch(() => {
           console.error('Something went wrong')

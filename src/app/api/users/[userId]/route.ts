@@ -10,7 +10,10 @@ export const GET = async (request: NextRequest, { params }: { params: { userId: 
       return new NextResponse('Internal Error', { status: 500 })
     }
 
-    const userDocument = await firestore.collection(USERS).doc(params.userId).get()
+    const userDocument = await firestore
+      .collection(USERS)
+      .doc((await params).userId)
+      .get()
     const userData = userDocument.data()
     const userProfile: UserProfile = {
       isAdmin: userData ? userData.isAdmin : false,

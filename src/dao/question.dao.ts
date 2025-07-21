@@ -18,7 +18,7 @@ const getQuestions = async (): Promise<Question[]> => {
     questions = results.docs.map((doc) => {
       const docData = doc.data()
       return {
-        id: docData.id,
+        id: doc.id,
         text: docData.text,
         answers: docData.answers,
         lastUsedDate: docData.lastUsedDate,
@@ -27,7 +27,6 @@ const getQuestions = async (): Promise<Question[]> => {
     })
   }
 
-  console.log('questions', questions)
   return questions
 }
 

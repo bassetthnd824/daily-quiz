@@ -1,5 +1,8 @@
+'use client'
+
 import Quiz from '@/components/quiz/quiz/Quiz'
 import { Question } from '@/models/question.model'
+import { getCurrentDate } from '@/util/utility'
 import { useEffect, useState } from 'react'
 
 const TodaysQuiz = () => {
@@ -10,7 +13,7 @@ const TodaysQuiz = () => {
   useEffect(() => {
     const getQuiz = async () => {
       try {
-        const data = await fetch('/api/quiz/todays-quiz')
+        const data = await fetch(`/api/quiz/${getCurrentDate()}`)
         const quiz = await data.json()
         setQuestions(quiz.questions)
       } catch (error) {

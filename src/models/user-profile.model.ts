@@ -1,4 +1,4 @@
-import { User } from 'firebase/auth'
+import { UserRecord } from 'firebase-admin/auth'
 
 export type UserProfile = {
   isAdmin: boolean
@@ -6,4 +6,4 @@ export type UserProfile = {
   nickname?: string
 }
 
-export type QuizUser = User & UserProfile
+export type QuizUser = Pick<UserRecord, 'uid' | 'email' | 'emailVerified' | 'displayName' | 'photoURL' | 'phoneNumber'> & UserProfile

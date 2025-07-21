@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "SET NEXT_PUBLIC_APP_ENV='emulator' next dev --turbopack",
+    "dev": "set NEXT_PUBLIC_APP_ENV='emulator' && next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "emulators": "firebase emulators:start"
+    "emulators": "firebase emulators:exec 'npm test'"
   },
   "dependencies": {
     "cookie": "^1.0.2",
