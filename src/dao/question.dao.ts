@@ -5,13 +5,15 @@ import { Question } from '@/models/question.model'
 
 const QUESTIONS = 'questions'
 
-const getQuestions = async (): Promise<Question[]> => {
+const getQuestions = async (transaction: FirebaseFirestore.Transaction): Promise<Question[]> => {
+  if (!firestore) {
+    return []
+  }
+
   const thirtyDaysAgo = dayjs().subtract(30, 'day')
-  const results = await firestore
-    ?.collection(QUESTIONS)
-    .where('status', '==', 'A')
-    .where('lastUsedDate', '<', thirtyDaysAgo.format(DATE_FORMAT))
-    .get()
+  const results = await transaction.get(
+    firestore.collection(QUESTIONS).where('status', '==', 'A').where('lastUsedDate', '<', thirtyDaysAgo.format(DATE_FORMAT))
+  )
   let questions: Question[] = []
 
   if (results) {
@@ -30,9 +32,13 @@ const getQuestions = async (): Promise<Question[]> => {
   return questions
 }
 
-const setLastUsedDate = async (questions: Question[]) => {
+const setLastUsedDate = (transaction: FirebaseFirestore.Transaction, questions: Question[]) => {
+  if (!firestore) {
+    return
+  }
+
   for (const question of questions) {
-    await firestore?.doc(`${QUESTIONS}/${question.id}`).set({ lastUsedDate: getCurrentDate() }, { merge: true })
+    transaction.set(firestore.doc(`${QUESTIONS}/${question.id}`), { lastUsedDate: getCurrentDate() }, { merge: true })
   }
 }
 
