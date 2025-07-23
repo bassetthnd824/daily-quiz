@@ -29,7 +29,7 @@ const Quiz = ({ questions }: QuizProps) => {
   const handleSkipAnswer = useCallback(() => handleSelectAnswer(''), [handleSelectAnswer])
 
   if (quizIsComplete) {
-    return <Summary userAnswers={userAnswers} questions={questions}/>
+    return <Summary userAnswers={userAnswers} questions={questions} />
   }
 
   return (

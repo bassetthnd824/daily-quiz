@@ -32,7 +32,7 @@ const HeaderComponent = () => {
         <div className={classes.right}>
           <div>{auth?.currentUser ? `Hello, ${auth.currentUser.displayName}!` : 'Welcome'}</div>
           {auth?.currentUser && (
-            <button type="button" className="btn-link" onClick={handleLogout}>
+            <button type="button" className="btn btn-link" onClick={handleLogout}>
               Logout
             </button>
           )}

@@ -19,7 +19,7 @@ const Answers = ({ answers, selectedAnswer, answerState, onSelect }: AnswersProp
 
   return (
     <ul className={classes.answers}>
-      {shuffledAnswers.current.map(answer => {
+      {shuffledAnswers.current.map((answer) => {
         const isSelected = selectedAnswer === answer
         let cssClass = ''
 
@@ -31,7 +31,7 @@ const Answers = ({ answers, selectedAnswer, answerState, onSelect }: AnswersProp
           <li key={answer} className={classes.answer}>
             <button
               type="button"
-              className={cssClass ? classes[cssClass] : ''}
+              className={`btn ${cssClass ? classes[cssClass] : ''}`}
               onClick={() => onSelect(answer)}
               disabled={answerState !== ''}
             >

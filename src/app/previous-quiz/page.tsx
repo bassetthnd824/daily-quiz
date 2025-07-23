@@ -87,13 +87,13 @@ const PreviousQuiz = () => {
       <div className={classes.calendar}>
         <div className={classes.calendarHeader}>
           <div className={classes.monthYearRow}>
-            <button type="button" onClick={handleDecrmentMonthYear}>
+            <button type="button" className="btn" onClick={handleDecrmentMonthYear}>
               &lt;&lt;
             </button>
             <h3>
               {monthYear.month} {monthYear.year}
             </h3>
-            <button type="button" onClick={handleIncrementMonthYear} disabled={incrementDisabled}>
+            <button type="button" className="btn" onClick={handleIncrementMonthYear} disabled={incrementDisabled}>
               &gt;&gt;
             </button>
           </div>

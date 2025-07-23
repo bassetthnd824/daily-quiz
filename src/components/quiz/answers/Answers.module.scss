@@ -3,7 +3,7 @@
 }
 
 .answer {
-  &+.answer {
+  & + .answer {
     margin-top: 1.5rem;
   }
 
@@ -12,15 +12,18 @@
     width: 100%;
     border-radius: 1.5rem;
 
-    &.answered {
+    &.answered,
+    &.answered:hover {
       background-color: var(--warning);
     }
 
-    &.correct {
+    &.correct,
+    &.correct:hover {
       background-color: var(--success);
     }
 
-    &.wrong {
+    &.wrong,
+    &.wrong:hover {
       background-color: var(--danger);
     }
   }
