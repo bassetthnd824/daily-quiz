@@ -3,8 +3,12 @@ import { Quiz } from '@/models/quiz.model'
 
 const QUIZZES = 'quizzes'
 
-const getQuizForDate = async (date: string): Promise<Quiz | undefined> => {
-  const docRef = await firestore?.doc(`${QUIZZES}/${date}`).get()
+const getQuizForDate = async (transaction: FirebaseFirestore.Transaction, date: string): Promise<Quiz | undefined> => {
+  if (!firestore) {
+    return undefined
+  }
+
+  const docRef = await transaction.get(firestore.doc(`${QUIZZES}/${date}`))
 
   let quiz: Quiz | undefined = undefined
 
@@ -22,8 +26,12 @@ const getQuizForDate = async (date: string): Promise<Quiz | undefined> => {
   return quiz
 }
 
-const addQuiz = async (quiz: Quiz) => {
-  await firestore?.doc(`${QUIZZES}/${quiz.date}`).create({ ...quiz })
+const addQuiz = (transaction: FirebaseFirestore.Transaction, quiz: Quiz) => {
+  if (!firestore) {
+    return
+  }
+
+  transaction.create(firestore?.doc(`${QUIZZES}/${quiz.date}`), { ...quiz })
 }
 
 export const quizDao = {

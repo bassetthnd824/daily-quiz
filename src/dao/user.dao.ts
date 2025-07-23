@@ -3,12 +3,16 @@ import { UserProfile } from '@/models/user-profile.model'
 
 const USERS = 'users'
 
-const getUser = async (userId: string): Promise<UserProfile | undefined> => {
-  const docRef = await firestore?.doc(`${USERS}/${userId}`).get()
+const getUser = async (transaction: FirebaseFirestore.Transaction, userId: string): Promise<UserProfile | undefined> => {
+  if (!firestore) {
+    return undefined
+  }
+
+  const docSnap = await transaction.get(firestore.doc(`${USERS}/${userId}`))
   let userProfile: UserProfile | undefined = undefined
 
-  if (docRef) {
-    const docData = docRef.data()
+  if (docSnap) {
+    const docData = docSnap.data()
     if (docData) {
       userProfile = {
         nickname: docData.nickname,
@@ -21,8 +25,12 @@ const getUser = async (userId: string): Promise<UserProfile | undefined> => {
   return userProfile
 }
 
-const createUserProfile = async (userId: string, userProfile: UserProfile) => {
-  await firestore?.doc(`${USERS}/${userId}`).create({ ...userProfile })
+const createUserProfile = (transaction: FirebaseFirestore.Transaction, userId: string, userProfile: UserProfile) => {
+  if (!firestore) {
+    return
+  }
+
+  transaction.create(firestore.doc(`${USERS}/${userId}`), { ...userProfile })
 }
 
 export const userDao = {
