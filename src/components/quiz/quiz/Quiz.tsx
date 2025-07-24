@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import classes from './Quiz.module.scss'
 import QuestionComponent from '@/components/quiz/question/Question'
 import Summary from '@/components/quiz/summary/Summary'
+import { UserAnswer } from '@/models/user-answer.model'
 
 export type QuizProps = {
   questions: Question[]
@@ -15,18 +16,18 @@ export const SELECTED_TIME = 1000
 export const CORRECT_TIME = 2000
 
 const Quiz = ({ questions }: QuizProps) => {
-  const [userAnswers, setUserAnswers] = useState<string[]>([])
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([])
 
   const activeQuestionIndex = userAnswers.length
   const quizIsComplete = activeQuestionIndex === questions.length
 
-  const handleSelectAnswer = useCallback((selectedAnswer: string) => {
+  const handleSelectAnswer = useCallback((selectedAnswer: UserAnswer) => {
     setUserAnswers((prevUserAnswers) => {
       return [...prevUserAnswers, selectedAnswer]
     })
   }, [])
 
-  const handleSkipAnswer = useCallback(() => handleSelectAnswer(''), [handleSelectAnswer])
+  const handleSkipAnswer = useCallback(() => handleSelectAnswer({ answer: '', timeToAnswer: 0 }), [handleSelectAnswer])
 
   if (quizIsComplete) {
     return <Summary userAnswers={userAnswers} questions={questions} />
