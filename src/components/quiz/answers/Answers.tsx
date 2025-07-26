@@ -1,5 +1,6 @@
 import classes from '@/components/quiz/answers/Answers.module.scss'
 import { AnswerState } from '@/components/quiz/quiz/Quiz'
+import { shuffleArray } from '@/util/utility'
 import { useRef } from 'react'
 
 export type AnswersProps = {
@@ -13,8 +14,7 @@ const Answers = ({ answers, selectedAnswer, answerState, onSelect }: AnswersProp
   const shuffledAnswers = useRef<string[]>(undefined)
 
   if (!shuffledAnswers.current) {
-    shuffledAnswers.current = [...answers]
-    shuffledAnswers.current.sort(() => Math.random() - 0.5)
+    shuffledAnswers.current = shuffleArray(answers)
   }
 
   return (
