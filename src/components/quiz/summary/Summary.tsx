@@ -1,69 +1,96 @@
+'use client'
+
 import { Question } from '@/models/question.model'
 import classes from './Summary.module.scss'
+import { UserAnswer } from '@/models/user-answer.model'
+import { useEffect, useState } from 'react'
+import { getCurrentDate } from '@/util/utility'
+import { QuizSummary } from '@/models/quiz-summary.model'
 
 export type SummaryProps = {
-  userAnswers: string[],
-  questions: Question[],
+  userAnswers: UserAnswer[]
+  questions: Question[]
+  prevSummary?: QuizSummary
 }
 
-const Summary = ({ userAnswers, questions }: SummaryProps) => {
-  const skippedAnswers = userAnswers.filter((answer) => answer === null);
-  const correctAnswers = userAnswers.filter(
-    (answer, index) => answer === questions[index].answers[0]
-  );
+const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
+  const [loading, setLoading] = useState(true)
+  const [quizSummary, setQuizSummary] = useState<QuizSummary>()
+  const [error, setError] = useState<string>('')
 
-  const skippedAnswersShare = Math.round(
-    (skippedAnswers.length / userAnswers.length) * 100
-  );
+  useEffect(() => {
+    const patchQuiz = async () => {
+      try {
+        const quizPatchResponse = await fetch(`/api/quiz/${getCurrentDate()}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            userAnswers,
+            questions,
+          }),
+        })
+        const data = await quizPatchResponse.json()
+        setQuizSummary(data)
+      } catch (error) {
+        setError(error as unknown as string)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const correctAnswersShare = Math.round(
-    (correctAnswers.length / userAnswers.length) * 100
-  );
+    if (!prevSummary) {
+      patchQuiz()
+    } else {
+      setQuizSummary(prevSummary)
+      setLoading(false)
+    }
+  }, [questions, userAnswers, prevSummary])
 
-  const wrongAnswersShare = 100 - skippedAnswersShare - correctAnswersShare;
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (error) {
+    return <div>{error}</div>
+  }
 
   return (
     <div className={classes.summary}>
       <h2>Quiz Completed!</h2>
+      <h3>Your Score: {quizSummary?.score}</h3>
       <div className={classes.summaryStats}>
         <p>
-          <span className={classes.number}>{skippedAnswersShare}%</span>
+          <span className={classes.number}>{quizSummary?.skippedAnswersShare}%</span>
           <span className={classes.text}>skipped</span>
         </p>
         <p>
-          <span className={classes.number}>{correctAnswersShare}%</span>
+          <span className={classes.number}>{quizSummary?.correctAnswersShare}%</span>
           <span className={classes.text}>answered correctly</span>
         </p>
         <p>
-          <span className={classes.number}>{wrongAnswersShare}%</span>
+          <span className={classes.number}>{quizSummary?.wrongAnswersShare}%</span>
           <span className={classes.text}>answered incorrectly</span>
         </p>
       </div>
       <div>
-        {userAnswers.map((answer, index) => {
-          let cssClass = '';
-
-          if (!answer) {
-            cssClass += 'skipped';
-          } else if (answer === questions[index].answers[0]) {
-            cssClass += 'correct';
-          } else {
-            cssClass += 'wrong';
-          }
-
+        {quizSummary?.answers.map((answer, index) => {
           return (
             <div className={classes.answerRow} key={index}>
               <div className={classes.answerNumber}>{index + 1}</div>
               <div className={classes.answerQuestion}>
-                <p className={classes.question}>Q: {questions[index].text}</p>
-                <p className={`${classes.userAnswer} ${classes[cssClass]}`}>A: {answer || 'Skipped'}</p>
+                <p className={classes.question}>Q: {answer?.questionText}</p>
+                <p className={`${classes.userAnswer} ${answer?.status ? classes[answer.status] : ''}`}>A: {answer.answer || 'Skipped'}</p>
+                <p className={classes.question}>Score: {answer.bonus}</p>
               </div>
             </div>
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }
 
 export default Summary

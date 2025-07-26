@@ -1,13 +1,13 @@
 'use client'
 
 import Quiz from '@/components/quiz/quiz/Quiz'
-import { Question } from '@/models/question.model'
+import { Quiz as QuizModel } from '@/models/quiz.model'
 import { getCurrentDate } from '@/util/utility'
 import { useEffect, useState } from 'react'
 
 const TodaysQuiz = () => {
   const [loading, setLoading] = useState(true)
-  const [questions, setQuestions] = useState<Question[]>([])
+  const [quiz, setQuiz] = useState<QuizModel>()
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
@@ -15,7 +15,7 @@ const TodaysQuiz = () => {
       try {
         const data = await fetch(`/api/quiz/${getCurrentDate()}`)
         const quiz = await data.json()
-        setQuestions(quiz.questions)
+        setQuiz(quiz)
       } catch (error) {
         setError(error as unknown as string)
       } finally {
@@ -29,7 +29,7 @@ const TodaysQuiz = () => {
   return (
     <>
       {loading && <div>Loading...</div>}
-      {!loading && <Quiz questions={questions}></Quiz>}
+      {!loading && <Quiz quiz={quiz!}></Quiz>}
       {error && <div>{error}</div>}
     </>
   )
