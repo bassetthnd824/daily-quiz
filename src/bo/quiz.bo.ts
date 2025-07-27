@@ -9,6 +9,12 @@ import { QuizSummary } from '@/models/quiz-summary.model'
 
 const MAX_DAILY_QUESTIONS = 10
 
+export type QuizzesParams = {
+  userId?: string
+  begDate?: string
+  endDate?: string
+}
+
 const getTodaysQuiz = async (): Promise<Quiz | undefined> => {
   return getQuizForDate(getCurrentDate())
 }
@@ -39,6 +45,20 @@ const getQuizForDate = async (date: string): Promise<Quiz | undefined> => {
   return quiz
 }
 
+const getQuizzes = async ({ begDate, endDate }: QuizzesParams): Promise<Quiz[]> => {
+  let quizzes: Quiz[] = []
+
+  try {
+    await firestore?.runTransaction(async (transaction) => {
+      quizzes = await quizDao.getQuizzes(transaction, { begDate, endDate })
+    })
+  } catch (error) {
+    console.error('Transaction failed', error)
+  }
+
+  return quizzes
+}
+
 export const getQuizResults = async (
   date: string,
   userId: string,
@@ -53,7 +73,7 @@ export const getQuizResults = async (
   let score = 0
 
   userAnswers.forEach((answer, index) => {
-    answer.questionText = questions[index].answers[0]
+    answer.questionText = questions[index].text
 
     if (!answer.answer) {
       answer.status = 'skipped'
@@ -95,5 +115,6 @@ const getRandomQuestions = async (transaction: FirebaseFirestore.Transaction): P
 export const quizService = {
   getTodaysQuiz,
   getQuizForDate,
+  getQuizzes,
   getQuizResults,
 }

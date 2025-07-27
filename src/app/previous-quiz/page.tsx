@@ -1,37 +1,41 @@
-import { useState } from 'react'
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import classes from './page.module.scss'
 import dayjs from 'dayjs'
-
-type MonthYearState = {
-  monthNdx: number
-  month: string
-  year: number
-}
-
-const getCurrentMonthYear = (): MonthYearState => {
-  const monthNdx = dayjs().month()
-  const month = getMonthFromNdx(monthNdx)
-  const year = dayjs().year()
-
-  return {
-    monthNdx,
-    month,
-    year,
-  }
-}
-
-const getMonthFromNdx = (ndx: number) => {
-  return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][ndx]
-}
+import { getCurrentMonthYear, getMonthFromNdx, MonthYear } from '@/util/utility'
+import { Quiz } from '@/models/quiz.model'
+import { useAuth } from '@/context/user-context'
 
 const PreviousQuiz = () => {
   const currentMonthYear = getCurrentMonthYear()
-  const [monthYear, setMonthYear] = useState<MonthYearState>(currentMonthYear)
-  const incrementDisabled = monthYear.monthNdx === currentMonthYear.monthNdx && monthYear.year === currentMonthYear.year
+  const [monthYear, setMonthYear] = useState<MonthYear>(currentMonthYear)
+  const [quizzes, setQuizzes] = useState<Quiz[]>([])
+  const auth = useAuth()
+  const userId = auth?.currentUser?.uid
   const baseDate = dayjs(new Date(monthYear.year, monthYear.monthNdx, 1))
   const dayOfWeek = baseDate.day()
   const daysInMonth = baseDate.daysInMonth()
+
+  useEffect(() => {
+    const getQuizzes = async () => {
+      const month = (currentMonthYear.monthNdx + 1).toString().padStart(2, '0')
+      const begDate = `${currentMonthYear.year}-${month}-01`
+      const endDate = `${currentMonthYear.year}-${month}-${daysInMonth}`
+
+      try {
+        const quizzesResponse = await fetch(`/api/quiz?begDate=${begDate}&endDate=${endDate}`)
+        setQuizzes(await quizzesResponse.json())
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    getQuizzes()
+  }, [currentMonthYear.monthNdx, currentMonthYear.year, daysInMonth])
+
+  const incrementDisabled = monthYear.monthNdx === currentMonthYear.monthNdx && monthYear.year === currentMonthYear.year
   const calendarArray: string[] = []
   const ndxLimit = (daysInMonth === 30 && dayOfWeek > 5) || (daysInMonth === 31 && dayOfWeek > 4) ? 42 : 35
   let j = 1
@@ -44,6 +48,8 @@ const PreviousQuiz = () => {
       calendarArray.push('')
     }
   }
+
+  const userQuizzes = quizzes.filter((quiz) => Boolean(quiz.summaries?.[userId!]))
 
   const handleDecrmentMonthYear = () => {
     setMonthYear((prevMonthYear) => {
@@ -83,7 +89,7 @@ const PreviousQuiz = () => {
 
   return (
     <div className={classes.previousQuiz}>
-      <h2>Take a Previous Day&#39;s Quiz</h2>
+      <h2>See Previous Quizzes</h2>
       <div className={classes.calendar}>
         <div className={classes.calendarHeader}>
           <div className={classes.monthYearRow}>
@@ -109,18 +115,24 @@ const PreviousQuiz = () => {
           <div className={classes.calendarRow}>
             {calendarArray.map((day) => {
               let content
+              let quiz
 
               if (day) {
                 const date = `${monthYear.year}-${String(monthYear.monthNdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                content = (
-                  <Link className={classes.previousQuizLink} href={`/previous-quiz/${date}`}>
-                    {day}
-                  </Link>
-                )
+                quiz = userQuizzes.find((quiz) => quiz.date === date)
+                if (quiz) {
+                  content = (
+                    <Link className={classes.previousQuizLink} href={`/previous-quiz/${date}`}>
+                      {day}
+                    </Link>
+                  )
+                } else {
+                  content = day
+                }
               }
 
               return (
-                <div key={Math.random()} className={classes.calendarDay}>
+                <div key={Math.random()} className={`${classes.calendarDay} ${quiz ? classes.hasQuiz : ''}`}>
                   {content}
                 </div>
               )

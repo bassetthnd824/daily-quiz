@@ -1,3 +1,4 @@
+import { QuizzesParams } from '@/bo/quiz.bo'
 import { firestore } from '@/firebase/server'
 import { QuizSummary } from '@/models/quiz-summary.model'
 import { Quiz } from '@/models/quiz.model'
@@ -20,14 +21,34 @@ const getQuizForDate = async (transaction: FirebaseFirestore.Transaction, date: 
       quiz = {
         date: docData.date,
         questions: [...docData.questions],
-        summaries: {
-          ...docData.summaries,
-        },
+        summaries: { ...docData.summaries },
       }
     }
   }
 
   return quiz
+}
+
+const getQuizzes = async (transaction: FirebaseFirestore.Transaction, { begDate, endDate }: QuizzesParams): Promise<Quiz[]> => {
+  if (!firestore) {
+    return []
+  }
+
+  const results = await transaction.get(firestore.collection(QUIZZES).where('date', '>=', begDate).where('date', '<=', endDate))
+  let quizzes: Quiz[] = []
+
+  if (results) {
+    quizzes = results.docs.map((doc) => {
+      const docData = doc.data()
+      return {
+        date: docData.date,
+        questions: [...docData.questions],
+        summaries: { ...docData.summaries },
+      }
+    })
+  }
+
+  return quizzes
 }
 
 const addQuiz = (transaction: FirebaseFirestore.Transaction, quiz: Quiz) => {
@@ -48,6 +69,7 @@ const addQuizSummary = (transaction: FirebaseFirestore.Transaction, date: string
 
 export const quizDao = {
   getQuizForDate,
+  getQuizzes,
   addQuiz,
   addQuizSummary,
 }

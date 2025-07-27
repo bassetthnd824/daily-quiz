@@ -1,7 +1,7 @@
 .previousQuiz {
   background-color: var(--dark-gray);
   border: 0.0625rem solid transparent;
-  border-radius: .5rem;
+  border-radius: 0.5rem;
   padding: 2rem;
 
   h2 {
@@ -13,7 +13,7 @@
 }
 
 .calendar {
-  border: 0.0625rem solid var(--white)
+  border: 0.0625rem solid var(--white);
 }
 
 .monthYearRow {
@@ -39,6 +39,12 @@
   padding: 0.25rem;
   border: 0.0625rem solid var(--white);
   font-size: 1.25rem;
+}
+
+.hasQuiz {
+  background-color: var(--primary);
+  color: var(--white);
+  font-weight: 600;
 }
 
 .previousQuizLink {

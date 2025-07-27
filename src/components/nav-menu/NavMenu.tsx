@@ -18,7 +18,7 @@ export const NavMenu = ({ usageClass }: NavMenuProps) => {
           <Link href="/todays-quiz">Today&#39;s Quiz</Link>
         </li>
         <li className={classes.navMenuItem}>
-          <Link href="/previous-quiz">Previous Day&#39;s Quiz</Link>
+          <Link href="/previous-quiz">Previous Quizzes</Link>
         </li>
         {(auth?.currentUser?.isAdmin || auth?.currentUser?.canSubmitQuestions) && (
           <li className={classes.navMenuItem}>
