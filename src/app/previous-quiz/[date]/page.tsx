@@ -1,17 +1,39 @@
-import { quizService } from '@/bo/quiz.bo'
+'use client'
+
 import Quiz from '@/components/quiz/quiz/Quiz'
-import { Question } from '@/models/question.model'
+import { Quiz as QuizModel } from '@/models/quiz.model'
+import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 const QuizForDate = () => {
-  const router = useRouter()
-  const [questions, setQuestions] = useState<Question[]>([])
-  const date = router.useEffect(() => {
-    setQuestions(quizService.getQuizForDate(date).questions)
-  }, [date])
+  const params = useParams<{ date: string }>()
+  const [loading, setLoading] = useState(true)
+  const [quiz, setQuiz] = useState<QuizModel>()
+  const [error, setError] = useState<string>('')
 
-  return <Quiz questions={questions}></Quiz>
+  useEffect(() => {
+    const getQuiz = async () => {
+      try {
+        const data = await fetch(`/api/quiz/${params.date}`)
+        const quiz = await data.json()
+        setQuiz(quiz)
+      } catch (error) {
+        setError(error as unknown as string)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    getQuiz()
+  }, [params.date])
+
+  return (
+    <>
+      {loading && <div>Loading...</div>}
+      {!loading && <Quiz quiz={quiz!}></Quiz>}
+      {error && <div>{error}</div>}
+    </>
+  )
 }
 
 export default QuizForDate
