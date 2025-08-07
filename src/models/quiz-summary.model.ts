@@ -6,4 +6,8 @@ export type QuizSummary = {
   wrongAnswersShare: number
   score: number
   answers: UserAnswer[]
+  user: {
+    displayName: string
+    photoURL: string
+  }
 }

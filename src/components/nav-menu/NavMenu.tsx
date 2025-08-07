@@ -9,7 +9,7 @@ export type NavMenuProps = {
 }
 
 export const NavMenu = ({ usageClass }: NavMenuProps) => {
-  const auth = useAuth()
+  const { currentUser } = useAuth()
 
   return (
     <nav className={classes[usageClass]}>
@@ -20,7 +20,7 @@ export const NavMenu = ({ usageClass }: NavMenuProps) => {
         <li className={classes.navMenuItem}>
           <Link href="/previous-quiz">Previous Quizzes</Link>
         </li>
-        {(auth?.currentUser?.isAdmin || auth?.currentUser?.canSubmitQuestions) && (
+        {(currentUser?.isAdmin || currentUser?.canSubmitQuestions) && (
           <li className={classes.navMenuItem}>
             <Link href="/submit-question">Submit New Question for Quizzes</Link>
           </li>
@@ -31,12 +31,12 @@ export const NavMenu = ({ usageClass }: NavMenuProps) => {
         <li className={classes.navMenuItem}>
           <Link href="/user-profile">User Profile</Link>
         </li>
-        {auth?.currentUser?.isAdmin && (
+        {currentUser?.isAdmin && (
           <li className={classes.navMenuItem}>
             <Link href="/pending-questions">Review Pending Questions</Link>
           </li>
         )}
-        {auth?.currentUser?.isAdmin && (
+        {currentUser?.isAdmin && (
           <li className={classes.navMenuItem}>
             <Link href="/admin-user-profiles">Review User Profiles</Link>
           </li>

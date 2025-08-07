@@ -1,4 +1,5 @@
 import { quizService } from '@/bo/quiz.bo'
+import { userService } from '@/bo/user.bo'
 import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
@@ -44,8 +45,9 @@ export const PATCH = async (request: NextRequest, { params }: { params: Promise<
 
     const { uid } = await auth.verifySessionCookie(sessionCookie.value, true)
     const userQuizEntry = await request.json()
+    const quizUser = await userService.getQuizUser(uid)
 
-    return NextResponse.json(await quizService.getQuizResults(date, uid, userQuizEntry))
+    return NextResponse.json(await quizService.getQuizResults(date, quizUser!, userQuizEntry))
   } catch (error) {
     console.log(error)
     return new NextResponse('Internal Error', { status: 500 })

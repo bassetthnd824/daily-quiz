@@ -12,8 +12,8 @@ const PreviousQuiz = () => {
   const currentMonthYear = getCurrentMonthYear()
   const [monthYear, setMonthYear] = useState<MonthYear>(currentMonthYear)
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
-  const auth = useAuth()
-  const userId = auth?.currentUser?.uid
+  const { currentUser } = useAuth()
+  const userId = currentUser?.uid
   const baseDate = dayjs(new Date(monthYear.year, monthYear.monthNdx, 1))
   const dayOfWeek = baseDate.day()
   const daysInMonth = baseDate.daysInMonth()

@@ -6,6 +6,7 @@ import { QUESTION_TIME, Quiz } from '@/models/quiz.model'
 import { firestore } from '@/firebase/server'
 import { UserAnswer } from '@/models/user-answer.model'
 import { QuizSummary } from '@/models/quiz-summary.model'
+import { QuizUser } from '@/models/user-profile.model'
 
 const MAX_DAILY_QUESTIONS = 10
 
@@ -61,7 +62,7 @@ const getQuizzes = async ({ begDate, endDate }: QuizzesParams): Promise<Quiz[]> 
 
 export const getQuizResults = async (
   date: string,
-  userId: string,
+  quizUser: QuizUser,
   { userAnswers, questions }: { userAnswers: UserAnswer[]; questions: Question[] }
 ): Promise<QuizSummary> => {
   const skippedAnswers = userAnswers.filter((answer) => !answer.answer)
@@ -94,11 +95,15 @@ export const getQuizResults = async (
     wrongAnswersShare,
     answers: userAnswers,
     score,
+    user: {
+      displayName: quizUser.nickname ?? quizUser.displayName,
+      photoURL: quizUser.photoURL,
+    },
   }
 
   try {
     await firestore?.runTransaction(async (transaction) => {
-      quizDao.addQuizSummary(transaction, date, userId, quizSummary)
+      quizDao.addQuizSummary(transaction, date, quizUser.uid, quizSummary)
     })
   } catch (error) {
     console.error('Transaction failed', error)
