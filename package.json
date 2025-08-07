@@ -10,6 +10,7 @@
     "emulators": "firebase emulators:exec 'npm test'"
   },
   "dependencies": {
+    "@edge-csrf/core": "^2.5.3-cloudflare-rc1",
     "cookie": "^1.0.2",
     "dayjs": "^1.11.13",
     "firebase": "^11.10.0",
