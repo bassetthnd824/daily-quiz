@@ -31,6 +31,17 @@ export const getMonthFromNdx = (ndx: number) => {
   return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][ndx]
 }
 
+export const getMonthDateRange = () => {
+  const currentMonthYear = getCurrentMonthYear()
+  const baseDate = dayjs(new Date(currentMonthYear.year, currentMonthYear.monthNdx, 1))
+  const daysInMonth = baseDate.daysInMonth()
+  const month = (currentMonthYear.monthNdx + 1).toString().padStart(2, '0')
+  return {
+    begDate: `${currentMonthYear.year}-${month}-01`,
+    endDate: `${currentMonthYear.year}-${month}-${daysInMonth}`,
+  }
+}
+
 export const shuffleArray = <T>(array: T[]): T[] => {
   const shuffledArray = [...array]
 

@@ -20,14 +20,14 @@ export const NavMenu = ({ usageClass }: NavMenuProps) => {
         <li className={classes.navMenuItem}>
           <Link href="/previous-quiz">Previous Quizzes</Link>
         </li>
+        <li className={classes.navMenuItem}>
+          <Link href="/leader-board">Leader Board</Link>
+        </li>
         {(currentUser?.isAdmin || currentUser?.canSubmitQuestions) && (
           <li className={classes.navMenuItem}>
             <Link href="/submit-question">Submit New Question for Quizzes</Link>
           </li>
         )}
-        <li className={classes.navMenuItem}>
-          <Link href="/leader-board">Leader Board</Link>
-        </li>
         <li className={classes.navMenuItem}>
           <Link href="/user-profile">User Profile</Link>
         </li>
