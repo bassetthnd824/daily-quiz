@@ -16,10 +16,10 @@ export type AnswerState = '' | 'answered' | 'correct' | 'wrong'
 
 const Quiz = ({ quiz }: QuizProps) => {
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([])
-  const auth = useAuth()
+  const { currentUser } = useAuth()
 
   const activeQuestionIndex = userAnswers.length
-  const uid = auth?.currentUser?.uid
+  const uid = currentUser?.uid
   const quizIsComplete = quiz.summaries?.[uid!] || activeQuestionIndex === quiz.questions.length
 
   const handleSelectAnswer = useCallback((selectedAnswer: UserAnswer) => {

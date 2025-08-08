@@ -3,6 +3,7 @@
 import { auth } from '@/firebase/client'
 import { QuizUser, UserProfile } from '@/models/user-profile.model'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { useRouter } from 'next/navigation'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
 export type UserContextValue = {
@@ -11,11 +12,16 @@ export type UserContextValue = {
   logout: () => Promise<void>
 }
 
-export const UserContext = createContext<UserContextValue | null>(null)
+export const UserContext = createContext<UserContextValue>({
+  currentUser: null,
+  loginGoogle: async () => {},
+  logout: async () => {},
+})
 
 const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<QuizUser | null>(null)
   const [sessionChecked, setSessionChecked] = useState<boolean>(false)
+  const router = useRouter()
 
   useEffect(() => {
     const getUserSession = async () => {
@@ -28,6 +34,7 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
 
       if (!response.ok) {
         setSessionChecked(true)
+        router.push('/sign-in')
         return
       }
 
@@ -64,6 +71,8 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
           body: JSON.stringify({
             idToken: await user.getIdToken(),
             userId: user.uid,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
           }),
         })
 
@@ -78,8 +87,6 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
               uid: user.uid,
               email: user.email ? user.email : undefined,
               emailVerified: user.emailVerified,
-              displayName: user.displayName ? user.displayName : undefined,
-              photoURL: user.photoURL ? user.photoURL : undefined,
               phoneNumber: user.phoneNumber ? user.phoneNumber : undefined,
               ...userProfile,
             })

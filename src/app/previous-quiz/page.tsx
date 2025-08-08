@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import classes from './page.module.scss'
 import dayjs from 'dayjs'
-import { getCurrentMonthYear, getMonthFromNdx, MonthYear } from '@/util/utility'
+import { getCurrentMonthYear, getMonthDateRange, getMonthFromNdx, MonthYear } from '@/util/utility'
 import { Quiz } from '@/models/quiz.model'
 import { useAuth } from '@/context/user-context'
 
@@ -12,17 +12,15 @@ const PreviousQuiz = () => {
   const currentMonthYear = getCurrentMonthYear()
   const [monthYear, setMonthYear] = useState<MonthYear>(currentMonthYear)
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
-  const auth = useAuth()
-  const userId = auth?.currentUser?.uid
+  const { currentUser } = useAuth()
+  const userId = currentUser?.uid
   const baseDate = dayjs(new Date(monthYear.year, monthYear.monthNdx, 1))
   const dayOfWeek = baseDate.day()
   const daysInMonth = baseDate.daysInMonth()
 
   useEffect(() => {
     const getQuizzes = async () => {
-      const month = (currentMonthYear.monthNdx + 1).toString().padStart(2, '0')
-      const begDate = `${currentMonthYear.year}-${month}-01`
-      const endDate = `${currentMonthYear.year}-${month}-${daysInMonth}`
+      const { begDate, endDate } = getMonthDateRange()
 
       try {
         const quizzesResponse = await fetch(`/api/quiz?begDate=${begDate}&endDate=${endDate}`)

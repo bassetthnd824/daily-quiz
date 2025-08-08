@@ -6,15 +6,14 @@ import classes from './page.module.scss'
 
 const SignInComponent = () => {
   const router = useRouter()
-  const auth = useAuth()
+  const { currentUser, loginGoogle } = useAuth()
 
-  if (auth?.currentUser) {
+  if (currentUser) {
     router.push('/')
   }
 
   const handleLogin = () => {
-    auth
-      ?.loginGoogle()
+    loginGoogle()
       .then(() => {
         setTimeout(() => router.push('/'), 200)
         console.log('Logged In')

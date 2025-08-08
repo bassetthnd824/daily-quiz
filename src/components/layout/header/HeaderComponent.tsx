@@ -8,11 +8,10 @@ import { useAuth } from '@/context/user-context'
 
 const HeaderComponent = () => {
   const router = useRouter()
-  const auth = useAuth()
+  const { currentUser, logout } = useAuth()
 
   const handleLogout = () => {
-    auth
-      ?.logout()
+    logout()
       .then(() => {
         router.push('/sign-in')
         console.log('Logged out')
@@ -30,8 +29,8 @@ const HeaderComponent = () => {
         </Link>
         <h1>Daily Quiz</h1>
         <div className={classes.right}>
-          <div>{auth?.currentUser ? `Hello, ${auth.currentUser.displayName}!` : 'Welcome'}</div>
-          {auth?.currentUser && (
+          <div>{currentUser ? `Hello, ${currentUser.displayName}!` : 'Welcome'}</div>
+          {currentUser && (
             <button type="button" className="btn btn-link" onClick={handleLogout}>
               Logout
             </button>

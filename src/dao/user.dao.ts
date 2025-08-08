@@ -18,6 +18,8 @@ const getUser = async (transaction: FirebaseFirestore.Transaction, userId: strin
         nickname: docData.nickname,
         canSubmitQuestions: docData.canSubmitQuestions,
         isAdmin: docData.isAdmin,
+        displayName: docData.displayName,
+        photoURL: docData.photoURL,
       }
     }
   }

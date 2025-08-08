@@ -1,11 +1,13 @@
 import { quizDao } from '@/dao/quiz.dao'
-import { getCurrentDate, shuffleArray } from '@/util/utility'
+import { getCurrentDate, getMonthDateRange, shuffleArray } from '@/util/utility'
 import { questionDao } from '@/dao/question.dao'
 import { Question } from '@/models/question.model'
 import { QUESTION_TIME, Quiz } from '@/models/quiz.model'
 import { firestore } from '@/firebase/server'
 import { UserAnswer } from '@/models/user-answer.model'
 import { QuizSummary } from '@/models/quiz-summary.model'
+import { QuizUser } from '@/models/user-profile.model'
+import { LeaderboardEntry } from '@/models/leaderboard-entry.model'
 
 const MAX_DAILY_QUESTIONS = 10
 
@@ -61,7 +63,7 @@ const getQuizzes = async ({ begDate, endDate }: QuizzesParams): Promise<Quiz[]> 
 
 export const getQuizResults = async (
   date: string,
-  userId: string,
+  quizUser: QuizUser,
   { userAnswers, questions }: { userAnswers: UserAnswer[]; questions: Question[] }
 ): Promise<QuizSummary> => {
   const skippedAnswers = userAnswers.filter((answer) => !answer.answer)
@@ -94,17 +96,67 @@ export const getQuizResults = async (
     wrongAnswersShare,
     answers: userAnswers,
     score,
+    user: {
+      displayName: quizUser.nickname ?? quizUser.displayName,
+      photoURL: quizUser.photoURL,
+    },
   }
 
   try {
     await firestore?.runTransaction(async (transaction) => {
-      quizDao.addQuizSummary(transaction, date, userId, quizSummary)
+      quizDao.addQuizSummary(transaction, date, quizUser.uid, quizSummary)
     })
   } catch (error) {
     console.error('Transaction failed', error)
   }
 
   return quizSummary
+}
+
+const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
+  const results: Map<string, LeaderboardEntry> = new Map<string, LeaderboardEntry>()
+
+  try {
+    let quizzes: Quiz[] = []
+    await firestore?.runTransaction(async (transaction) => {
+      quizzes = await quizDao.getQuizzes(transaction, getMonthDateRange())
+    })
+
+    quizzes.forEach((quiz) => {
+      if (quiz.summaries) {
+        Object.entries(quiz.summaries).forEach(([key, value]) => {
+          if (results.has(key)) {
+            let entry = results.get(key)
+            if (entry) {
+              entry.totalScore += value.score
+            } else {
+              entry = {
+                userId: key,
+                displayName: value.user.displayName,
+                photoURL: value.user.photoURL,
+                totalScore: value.score,
+              }
+              results.set(key, entry)
+            }
+          } else {
+            const entry = {
+              userId: key,
+              displayName: value.user.displayName,
+              photoURL: value.user.photoURL,
+              totalScore: value.score,
+            }
+            results.set(key, entry)
+          }
+        })
+      }
+    })
+
+    return [...results.values()].sort((a, b) => b.totalScore - a.totalScore)
+  } catch (error) {
+    console.error('Transaction failed', error)
+  }
+
+  return []
 }
 
 const getRandomQuestions = async (transaction: FirebaseFirestore.Transaction): Promise<Question[]> => {
@@ -117,4 +169,5 @@ export const quizService = {
   getQuizForDate,
   getQuizzes,
   getQuizResults,
+  getLeaderboard,
 }
