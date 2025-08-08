@@ -22,9 +22,9 @@ if (currentApps.length <= 0) {
   auth = getAuth(currentApps[0])
 }
 
-if (process.env.NEXT_PUBLIC_APP_ENV === 'emulator') {
-  connectAuthEmulator(auth, `http://${process.env.NEXT_PUBLIC_EMULATOR_AUTH_PATH}`)
-}
+// if (process.env.NEXT_PUBLIC_APP_ENV === 'emulator') {
+//   connectAuthEmulator(auth, `http://${process.env.NEXT_PUBLIC_EMULATOR_AUTH_PATH}`)
+// }
 
 auth.setPersistence(inMemoryPersistence)
 

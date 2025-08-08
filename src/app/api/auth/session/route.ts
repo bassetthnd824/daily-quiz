@@ -1,21 +1,28 @@
 import { userService } from '@/bo/user.bo'
 import { auth, SESSION_COOKIE } from '@/firebase/server'
 import { QuizUser } from '@/models/user-profile.model'
+import { DecodedIdToken } from 'firebase-admin/auth'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export const GET = async () => {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get(SESSION_COOKIE)
+  let quizUser: QuizUser | undefined = undefined
+  let idToken: DecodedIdToken | undefined
+
+  if (!sessionCookie) {
+    return new NextResponse(undefined, { status: 404 })
+  }
+
   try {
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get(SESSION_COOKIE)
-    let quizUser: QuizUser | undefined = undefined
+    idToken = await auth?.verifySessionCookie(sessionCookie.value, true)
+  } catch (error) {
+    cookieStore.delete(SESSION_COOKIE)
+    return new NextResponse('Session Invalid', { status: 403 })
+  }
 
-    if (!sessionCookie) {
-      return new NextResponse(undefined, { status: 404 })
-    }
-
-    const idToken = await auth?.verifySessionCookie(sessionCookie.value, true)
-
+  try {
     if (!idToken) {
       return new NextResponse(undefined, { status: 404 })
     }

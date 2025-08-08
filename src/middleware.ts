@@ -8,14 +8,16 @@ export const SESSION_COOKIE = 'daily-quiz-session'
 
 // This function can be marked `async` if using `await` inside
 export const middleware = async (request: NextRequest) => {
-  if (request.url.startsWith('/api/')) {
+  const cookieStore = await cookies()
+
+  if (request.url.includes('/api/')) {
     const responseNext = NextResponse.next()
 
     if (['PUT', 'PATCH', 'DELETE', 'POST'].includes(request.method)) {
       const invalidCsrfTokenResponse = NextResponse.json({ message: ERROR_CODE_INVALID_CSRF }, { status: 403 })
 
       try {
-        const csrfRequestToken = request.headers.get(CSRF_TOKEN_NAME) ?? ''
+        const csrfRequestToken = cookieStore.get(CSRF_TOKEN_NAME)?.value ?? ''
         const isTokenValid = await verifyCsrfToken(csrfRequestToken)
 
         if (!isTokenValid) {
@@ -41,8 +43,6 @@ export const middleware = async (request: NextRequest) => {
 
     return responseNext
   } else {
-    const cookieStore = await cookies()
-
     if (!cookieStore.has(SESSION_COOKIE)) {
       if (!request.url.endsWith('/sign-in')) {
         return NextResponse.redirect(new URL('/sign-in', request.url))

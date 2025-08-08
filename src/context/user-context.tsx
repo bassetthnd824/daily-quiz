@@ -3,6 +3,7 @@
 import { auth } from '@/firebase/client'
 import { QuizUser, UserProfile } from '@/models/user-profile.model'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { useRouter } from 'next/navigation'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
 export type UserContextValue = {
@@ -20,6 +21,7 @@ export const UserContext = createContext<UserContextValue>({
 const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<QuizUser | null>(null)
   const [sessionChecked, setSessionChecked] = useState<boolean>(false)
+  const router = useRouter()
 
   useEffect(() => {
     const getUserSession = async () => {
@@ -32,6 +34,7 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
 
       if (!response.ok) {
         setSessionChecked(true)
+        router.push('/sign-in')
         return
       }
 
