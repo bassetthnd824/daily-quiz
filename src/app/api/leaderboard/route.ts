@@ -1,9 +1,9 @@
 import { quizService } from '@/bo/quiz.bo'
 import { firestore, SESSION_COOKIE } from '@/firebase/server'
 import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export const GET = async (request: NextRequest) => {
+export const GET = async () => {
   try {
     const cookieStore = await cookies()
 

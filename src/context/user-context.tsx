@@ -50,7 +50,7 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
     if (!sessionChecked) {
       getUserSession()
     }
-  }, [currentUser, sessionChecked])
+  }, [currentUser, router, sessionChecked])
 
   useEffect(() => {
     if (!auth) {

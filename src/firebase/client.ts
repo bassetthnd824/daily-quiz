@@ -1,7 +1,7 @@
 'use client'
 
 import { getApps, initializeApp } from 'firebase/app'
-import { Auth, connectAuthEmulator, getAuth, inMemoryPersistence } from 'firebase/auth'
+import { Auth, /*connectAuthEmulator,*/ getAuth, inMemoryPersistence } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
