@@ -1,4 +1,8 @@
+ARG FIREBASE_SERVICE_ACCOUNT
+
 FROM node:lts-alpine AS base
+
+ENV FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
 
 # Stage 1: Install dependencies
 FROM base AS deps
