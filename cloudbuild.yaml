@@ -6,7 +6,7 @@ steps:
       - |
         # Print the raw secret value as seen by the Cloud Build step
         echo "Raw secret value from Cloud Build environment:"
-        echo "$$MY_JSON_SECRET" # Use $$ to ensure Cloud Build passes the full string
+        echo "$$FIREBASE_SERVICE_ACCOUNT" # Use $$ to ensure Cloud Build passes the full string
 
         # If you're passing it as a build-arg to Docker:
         echo "Value passed to Docker build-arg (if applicable):"
