@@ -1,11 +1,11 @@
 import admin from 'firebase-admin'
 import { cert, getApps, ServiceAccount } from 'firebase-admin/app'
 import { Firestore, getFirestore } from 'firebase-admin/firestore'
-import serviceAccount from './serviceAccount.json'
 import { Auth, getAuth } from 'firebase-admin/auth'
 
 const SESSION_COOKIE = 'daily-quiz-session'
 const currentApps = getApps()
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!)
 let firestore: Firestore | undefined = undefined
 let auth: Auth | undefined = undefined
 
