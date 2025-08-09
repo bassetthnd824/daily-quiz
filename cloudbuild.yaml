@@ -1,0 +1,15 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash' # Important: Use bash entrypoint to evaluate variables
+    args:
+      - '-c'
+      - |
+        docker build \
+        -t us.gcr.io/${PROJECT_ID}/your-image-name \
+        --build-arg FIREBASE_SERVICE_ACCOUNT_VAR=$$FIREBASE_SERVICE_ACCOUNT \
+        .
+    secretEnv: ['FIREBASE_SERVICE_ACCOUNT'] # This makes 'FIREBASE_SERVICE_ACCOUNT' available in this Cloud Build step
+availableSecrets:
+  secretManager:
+    - versionName: projects/daily-quiz-464300/secrets/FIREBASE_SERVICE_ACCOUNT/versions/latest
+      env: 'FIREBASE_SERVICE_ACCOUNT' # Map the secret to an environment variable named FIREBASE_SERVICE_ACCOUNT
