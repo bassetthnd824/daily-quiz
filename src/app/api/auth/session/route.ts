@@ -18,6 +18,7 @@ export const GET = async () => {
   try {
     idToken = await auth?.verifySessionCookie(sessionCookie.value, true)
   } catch (error) {
+    console.log(error)
     cookieStore.delete(SESSION_COOKIE)
     return new NextResponse('Session Invalid', { status: 403 })
   }

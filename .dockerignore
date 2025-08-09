@@ -1,0 +1,6 @@
+.git
+.idea
+.next
+.vscode
+node_modules
+src/firebase/functions
