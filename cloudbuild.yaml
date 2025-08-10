@@ -4,15 +4,8 @@ steps:
   args:
   - '-c'
   - |
-      # Print the raw secret value as seen by the Cloud Build step
-      echo "Raw secret value from Cloud Build environment:"
-      echo "$$FIREBASE_SERVICE_ACCOUNT" # Use $$ to ensure Cloud Build passes the full string
-
-      # If you're passing it as a build-arg to Docker:
-      echo "Value passed to Docker build-arg (if applicable):"
-      docker build \
-        --build-arg FIREBASE_SERVICE_ACCOUNT="$$FIREBASE_SERVICE_ACCOUNT" \
-        -t us.gcr.io/${PROJECT_ID}/your-image-name \
+      docker build -t us.gcr.io/${PROJECT_ID}/your-image-name . \
+        --build-arg FIREBASE_SERVICE_ACCOUNT=$$FIREBASE_SERVICE_ACCOUNT \
         .
   secretEnv: ['FIREBASE_SERVICE_ACCOUNT'] # This makes 'FIREBASE_SERVICE_ACCOUNT' available in this Cloud Build step
 availableSecrets:

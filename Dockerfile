@@ -12,7 +12,7 @@ WORKDIR /src/app
 ARG FIREBASE_SERVICE_ACCOUNT
 COPY --from=deps /src/app/node_modules ./node_modules
 COPY . .
-RUN corepack enable npm && npm run build
+RUN export FIREBASE_SERVICE_ACCOUNT=$(echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode) && corepack enable npm && npm run build
 
 # Stage 3: Production server
 FROM base AS runner
