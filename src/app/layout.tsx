@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import FooterComponent from '@/components/layout/footer/FooterComponent'
 import HeaderComponent from '@/components/layout/header/HeaderComponent'
 import React, { ReactNode } from 'react'

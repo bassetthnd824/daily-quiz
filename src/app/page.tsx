@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NavMenu } from '@/components/nav-menu/NavMenu'
 
 const HomeComponent = () => {

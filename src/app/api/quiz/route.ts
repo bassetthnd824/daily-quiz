@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { quizService } from '@/bo/quiz.bo'
 import { firestore, SESSION_COOKIE } from '@/firebase/server'
 import { cookies } from 'next/headers'
