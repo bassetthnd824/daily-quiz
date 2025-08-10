@@ -5,7 +5,9 @@ import { Auth, getAuth } from 'firebase-admin/auth'
 
 const SESSION_COOKIE = 'daily-quiz-session'
 const currentApps = getApps()
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!)
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT
+console.log('[my json string]', serviceAccountJson)
+const serviceAccount = JSON.parse(serviceAccountJson!)
 let firestore: Firestore | undefined = undefined
 let auth: Auth | undefined = undefined
 
