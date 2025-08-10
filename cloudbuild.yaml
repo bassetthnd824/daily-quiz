@@ -11,7 +11,7 @@ steps:
       # If you're passing it as a build-arg to Docker:
       echo "Value passed to Docker build-arg (if applicable):"
       docker build \
-        --build-arg FIREBASE_SERVICE_ACCOUNT_VAR="$$FIREBASE_SERVICE_ACCOUNT" \
+        --build-arg FIREBASE_SERVICE_ACCOUNT="$$FIREBASE_SERVICE_ACCOUNT" \
         -t us.gcr.io/${PROJECT_ID}/your-image-name \
         .
   secretEnv: ['FIREBASE_SERVICE_ACCOUNT'] # This makes 'FIREBASE_SERVICE_ACCOUNT' available in this Cloud Build step
