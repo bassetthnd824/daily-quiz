@@ -1,8 +1,6 @@
-ARG FIREBASE_SERVICE_ACCOUNT
+ARG FIREBASE_SERVICE_ACCOUNT_VAR
 
 FROM node:lts-alpine AS base
-
-ENV FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT_VAR}
 
 # Stage 1: Install dependencies
 FROM base AS deps
@@ -13,6 +11,7 @@ RUN corepack enable npm && npm ci
 # Stage 2: Build the application
 FROM base AS builder
 WORKDIR /src/app
+ENV FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT_VAR}
 COPY --from=deps /src/app/node_modules ./node_modules
 COPY . .
 RUN corepack enable npm && npm run build
