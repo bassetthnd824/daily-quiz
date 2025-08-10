@@ -1,21 +1,21 @@
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash' # Important: Use bash entrypoint to evaluate variables
-    args:
-      - '-c'
-      - |
-        # Print the raw secret value as seen by the Cloud Build step
-        echo "Raw secret value from Cloud Build environment:"
-        echo "$$FIREBASE_SERVICE_ACCOUNT" # Use $$ to ensure Cloud Build passes the full string
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash' # Important: Use bash entrypoint to evaluate variables
+  args:
+  - '-c'
+  - |
+      # Print the raw secret value as seen by the Cloud Build step
+      echo "Raw secret value from Cloud Build environment:"
+      echo "$$FIREBASE_SERVICE_ACCOUNT" # Use $$ to ensure Cloud Build passes the full string
 
-        # If you're passing it as a build-arg to Docker:
-        echo "Value passed to Docker build-arg (if applicable):"
-        docker build \
+      # If you're passing it as a build-arg to Docker:
+      echo "Value passed to Docker build-arg (if applicable):"
+      docker build \
         --build-arg FIREBASE_SERVICE_ACCOUNT_VAR="$$FIREBASE_SERVICE_ACCOUNT" \
         -t us.gcr.io/${PROJECT_ID}/your-image-name \
         .
-    secretEnv: ['FIREBASE_SERVICE_ACCOUNT'] # This makes 'FIREBASE_SERVICE_ACCOUNT' available in this Cloud Build step
+  secretEnv: ['FIREBASE_SERVICE_ACCOUNT'] # This makes 'FIREBASE_SERVICE_ACCOUNT' available in this Cloud Build step
 availableSecrets:
   secretManager:
-    - versionName: projects/daily-quiz-464300/secrets/FIREBASE_SERVICE_ACCOUNT/versions/latest
-      env: 'FIREBASE_SERVICE_ACCOUNT' # Map the secret to an environment variable named FIREBASE_SERVICE_ACCOUNT
+  - versionName: projects/daily-quiz-464300/secrets/FIREBASE_SERVICE_ACCOUNT/versions/latest
+    env: 'FIREBASE_SERVICE_ACCOUNT' # Map the secret to an environment variable named FIREBASE_SERVICE_ACCOUNT
