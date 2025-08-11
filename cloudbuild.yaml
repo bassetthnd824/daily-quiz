@@ -1,7 +1,6 @@
 steps:
   # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash' # Important: Use bash entrypoint to evaluate variables
     args:
       - 'build'
       - '${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA}'
