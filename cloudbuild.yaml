@@ -3,6 +3,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '-t'
       - '${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA}'
       - '--build-arg'
       - 'FIREBASE_SERVICE_ACCOUNT=$$FIREBASE_SERVICE_ACCOUNT'
