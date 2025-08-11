@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic'
-
 import { userService } from '@/bo/user.bo'
 import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
 import { cookies } from 'next/headers'
