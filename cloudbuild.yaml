@@ -12,3 +12,6 @@ availableSecrets:
   secretManager:
   - versionName: projects/daily-quiz-464300/secrets/FIREBASE_SERVICE_ACCOUNT/versions/latest
     env: 'FIREBASE_SERVICE_ACCOUNT' # Map the secret to an environment variable named FIREBASE_SERVICE_ACCOUNT
+options:
+  logging: CLOUD_LOGGING_ONLY # <--- Add this section
+  
