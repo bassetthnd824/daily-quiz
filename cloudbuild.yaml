@@ -5,9 +5,10 @@ steps:
     args:
       - '-c'
       - |
-        docker build -t '${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA}' \
-          --build-arg FIREBASE_SERVICE_ACCOUNT=$$FIREBASE_SERVICE_ACCOUNT \
-          .
+        docker build \
+        -t ${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA} \
+        --build-arg FIREBASE_SERVICE_ACCOUNT=$$FIREBASE_SERVICE_ACCOUNT \
+        .
     secretEnv: ['FIREBASE_SERVICE_ACCOUNT'] # This makes 'FIREBASE_SERVICE_ACCOUNT' available in this Cloud Build step
 
   # Step 2: Push the Docker image to Artifact Registry
