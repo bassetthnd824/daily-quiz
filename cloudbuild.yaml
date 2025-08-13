@@ -6,8 +6,23 @@ steps:
       - '-c'
       - |
         docker build -t ${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA} \
-        --secret id=FIREBASE_SERVICE_ACCOUNT,env=FIREBASE_SERVICE_ACCOUNT .
-    secretEnv: ['FIREBASE_SERVICE_ACCOUNT'] # This makes 'FIREBASE_SERVICE_ACCOUNT' available in this Cloud Build step
+        --secret id=FIREBASE_SERVICE_ACCOUNT,env=FIREBASE_SERVICE_ACCOUNT \
+        --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,env=NEXT_PUBLIC_FIREBASE_API_KEY \
+        --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,env=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN \
+        --secret id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,env=NEXT_PUBLIC_FIREBASE_PROJECT_ID \
+        --secret id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,env=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET \
+        --secret id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,env=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID \
+        --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,env=NEXT_PUBLIC_FIREBASE_APP_ID \
+        .
+    secretEnv: 
+      - 'FIREBASE_SERVICE_ACCOUNT'
+      - 'NEXT_PUBLIC_FIREBASE_API_KEY'
+      - 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'
+      - 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'
+      - 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'
+      - 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'
+      - 'NEXT_PUBLIC_FIREBASE_APP_ID'
+
     env:
       - "DOCKER_BUILDKIT=1" # Enable Docker BuildKit
 
@@ -34,7 +49,19 @@ steps:
 availableSecrets:
   secretManager:
   - versionName: projects/daily-quiz-464300/secrets/FIREBASE_SERVICE_ACCOUNT/versions/latest
-    env: 'FIREBASE_SERVICE_ACCOUNT' # Map the secret to an environment variable named FIREBASE_SERVICE_ACCOUNT
+    env: 'FIREBASE_SERVICE_ACCOUNT'
+  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_API_KEY/versions/latest
+    env: 'NEXT_PUBLIC_FIREBASE_API_KEY'
+  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN/versions/latest
+    env: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'
+  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_PROJECT_ID/versions/latest
+    env: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'
+  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET/versions/latest
+    env: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'
+  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID/versions/latest
+    env: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'
+  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_APP_ID/versions/latest
+    env: 'NEXT_PUBLIC_FIREBASE_APP_ID'
 options:
   logging: CLOUD_LOGGING_ONLY # <--- Add this section
 
