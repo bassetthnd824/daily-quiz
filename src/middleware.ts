@@ -18,9 +18,11 @@ export const middleware = async (request: NextRequest) => {
 
       try {
         const csrfRequestToken = cookieStore.get(CSRF_TOKEN_NAME)?.value ?? ''
+        console.log(csrfRequestToken)
         const isTokenValid = await verifyCsrfToken(csrfRequestToken)
 
         if (!isTokenValid) {
+          console.log('Token did not verify')
           return invalidCsrfTokenResponse
         }
       } catch (error) {

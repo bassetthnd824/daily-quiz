@@ -104,3 +104,9 @@ form {
     background-color: transparent;
   }
 }
+
+.btn-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}

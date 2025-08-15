@@ -24,25 +24,21 @@ const getTodaysQuiz = async (): Promise<Quiz | undefined> => {
 const getQuizForDate = async (date: string): Promise<Quiz | undefined> => {
   let quiz: Quiz | undefined
 
-  try {
-    await firestore?.runTransaction(async (transaction) => {
-      quiz = await quizDao.getQuizForDate(transaction, date)
+  await firestore?.runTransaction(async (transaction) => {
+    quiz = await quizDao.getQuizForDate(transaction, date)
 
-      if (!quiz) {
-        quiz = {
-          questions: await getRandomQuestions(transaction),
-          date: getCurrentDate(),
-        }
-
-        quizDao.addQuiz(transaction, quiz)
-        if (process.env.NEXT_PUBLIC_APP_ENV !== 'emulator') {
-          questionDao.setLastUsedDate(transaction, quiz.questions)
-        }
+    if (!quiz) {
+      quiz = {
+        questions: await getRandomQuestions(transaction),
+        date: getCurrentDate(),
       }
-    })
-  } catch (error) {
-    console.error('Transaction failed', error)
-  }
+
+      quizDao.addQuiz(transaction, quiz)
+      if (process.env.NEXT_PUBLIC_APP_ENV !== 'emulator') {
+        questionDao.setLastUsedDate(transaction, quiz.questions)
+      }
+    }
+  })
 
   return quiz
 }
@@ -50,13 +46,9 @@ const getQuizForDate = async (date: string): Promise<Quiz | undefined> => {
 const getQuizzes = async ({ begDate, endDate }: QuizzesParams): Promise<Quiz[]> => {
   let quizzes: Quiz[] = []
 
-  try {
-    await firestore?.runTransaction(async (transaction) => {
-      quizzes = await quizDao.getQuizzes(transaction, { begDate, endDate })
-    })
-  } catch (error) {
-    console.error('Transaction failed', error)
-  }
+  await firestore?.runTransaction(async (transaction) => {
+    quizzes = await quizDao.getQuizzes(transaction, { begDate, endDate })
+  })
 
   return quizzes
 }
@@ -85,7 +77,7 @@ export const getQuizResults = async (
       answer.status = 'wrong'
     }
 
-    answer.bonus = answer.status === 'correct' ? QUESTION_TIME / 1000 - answer.timeToAnswer : 0
+    answer.bonus = answer.status === 'correct' ? QUESTION_TIME / 2000 - answer.timeToAnswer : 0
 
     score += answer.status === 'correct' ? answer.bonus : 0
   }, 0)
@@ -97,18 +89,14 @@ export const getQuizResults = async (
     answers: userAnswers,
     score,
     user: {
-      displayName: quizUser.nickname ?? quizUser.displayName,
+      displayName: quizUser.nickname ? quizUser.nickname : quizUser.displayName,
       photoURL: quizUser.photoURL,
     },
   }
 
-  try {
-    await firestore?.runTransaction(async (transaction) => {
-      quizDao.addQuizSummary(transaction, date, quizUser.uid, quizSummary)
-    })
-  } catch (error) {
-    console.error('Transaction failed', error)
-  }
+  await firestore?.runTransaction(async (transaction) => {
+    quizDao.addQuizSummary(transaction, date, quizUser.uid, quizSummary)
+  })
 
   return quizSummary
 }
@@ -116,30 +104,20 @@ export const getQuizResults = async (
 const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   const results: Map<string, LeaderboardEntry> = new Map<string, LeaderboardEntry>()
 
-  try {
-    let quizzes: Quiz[] = []
-    await firestore?.runTransaction(async (transaction) => {
-      quizzes = await quizDao.getQuizzes(transaction, getMonthDateRange())
-    })
+  let quizzes: Quiz[] = []
+  await firestore?.runTransaction(async (transaction) => {
+    quizzes = await quizDao.getQuizzes(transaction, getMonthDateRange())
+  })
 
-    quizzes.forEach((quiz) => {
-      if (quiz.summaries) {
-        Object.entries(quiz.summaries).forEach(([key, value]) => {
-          if (results.has(key)) {
-            let entry = results.get(key)
-            if (entry) {
-              entry.totalScore += value.score
-            } else {
-              entry = {
-                userId: key,
-                displayName: value.user.displayName,
-                photoURL: value.user.photoURL,
-                totalScore: value.score,
-              }
-              results.set(key, entry)
-            }
+  quizzes.forEach((quiz) => {
+    if (quiz.summaries) {
+      Object.entries(quiz.summaries).forEach(([key, value]) => {
+        if (results.has(key)) {
+          let entry = results.get(key)
+          if (entry) {
+            entry.totalScore += value.score
           } else {
-            const entry = {
+            entry = {
               userId: key,
               displayName: value.user.displayName,
               photoURL: value.user.photoURL,
@@ -147,16 +125,20 @@ const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
             }
             results.set(key, entry)
           }
-        })
-      }
-    })
+        } else {
+          const entry = {
+            userId: key,
+            displayName: value.user.displayName,
+            photoURL: value.user.photoURL,
+            totalScore: value.score,
+          }
+          results.set(key, entry)
+        }
+      })
+    }
+  })
 
-    return [...results.values()].sort((a, b) => b.totalScore - a.totalScore)
-  } catch (error) {
-    console.error('Transaction failed', error)
-  }
-
-  return []
+  return [...results.values()].sort((a, b) => b.totalScore - a.totalScore)
 }
 
 const getRandomQuestions = async (transaction: FirebaseFirestore.Transaction): Promise<Question[]> => {
