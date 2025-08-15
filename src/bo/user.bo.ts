@@ -5,13 +5,9 @@ import { UserRecord } from 'firebase-admin/auth'
 
 const getUserProfile = async (userId: string): Promise<UserProfile | undefined> => {
   let userProfile: UserProfile | undefined
-  try {
-    await firestore?.runTransaction(async (transaction) => {
-      userProfile = await userDao.getUser(transaction, userId)
-    })
-  } catch (error) {
-    console.error('Transation Failed', error)
-  }
+  await firestore?.runTransaction(async (transaction) => {
+    userProfile = await userDao.getUser(transaction, userId)
+  })
 
   return userProfile
 }
@@ -26,20 +22,16 @@ const createUserProfile = async ({
   photoURL: string
 }): Promise<UserProfile | undefined> => {
   let userProfile: UserProfile | undefined = undefined
-  try {
-    await firestore?.runTransaction(async (transaction) => {
-      userProfile = {
-        nickname: '',
-        displayName,
-        photoURL,
-        canSubmitQuestions: true,
-        isAdmin: false,
-      }
-      userDao.createUserProfile(transaction, userId, userProfile)
-    })
-  } catch (error) {
-    console.error('Transaction Failed', error)
-  }
+  await firestore?.runTransaction(async (transaction) => {
+    userProfile = {
+      nickname: '',
+      displayName,
+      photoURL,
+      canSubmitQuestions: true,
+      isAdmin: false,
+    }
+    userDao.createUserProfile(transaction, userId, userProfile)
+  })
   return userProfile
 }
 

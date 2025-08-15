@@ -25,6 +25,8 @@ const getQuestions = async (transaction: FirebaseFirestore.Transaction): Promise
         answers: docData.answers,
         lastUsedDate: docData.lastUsedDate,
         status: docData.status,
+        submittedBy: docData.submittedBy,
+        dateSubmitted: docData.dateSubmitted,
       }
     })
   }
@@ -42,7 +44,16 @@ const setLastUsedDate = (transaction: FirebaseFirestore.Transaction, questions: 
   }
 }
 
+const addQuestion = (transaction: FirebaseFirestore.Transaction, question: Omit<Question, 'id'>) => {
+  if (!firestore) {
+    return
+  }
+
+  transaction.set(firestore?.collection(QUESTIONS).doc(), { ...question })
+}
+
 export const questionDao = {
   getQuestions,
   setLastUsedDate,
+  addQuestion,
 }
