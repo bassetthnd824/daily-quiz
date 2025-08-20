@@ -1,0 +1,29 @@
+.userNamePhoto {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.userName {
+  white-space: nowrap;
+}
+
+.userMenu {
+  position: relative;
+}
+
+.menuTrigger {
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background-color: var(--white);
+  color: var(--dark-gray);
+  border: 0.0625rem solid var(--light-gray);
+  padding: 0.5rem 0.75rem;
+  z-index: 1000;
+}

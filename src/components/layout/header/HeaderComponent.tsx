@@ -1,40 +1,32 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import classes from './HeaderComponent.module.scss'
 import { HeaderMenu } from '@/components/layout/header-menu/HeaderMenu'
 import { useAuth } from '@/context/user-context'
+import UserPhotoMenu from '@/components/ui-elements/UserPhotoMenu/UserPhotoMenu'
 
 const HeaderComponent = () => {
-  const router = useRouter()
-  const { currentUser, logout } = useAuth()
+  const { currentUser } = useAuth()
 
-  const handleLogout = () => {
-    logout()
-      .then(() => {
-        router.push('/sign-in')
-        console.log('Logged out')
-      })
-      .catch(() => {
-        console.log('Something went wrong')
-      })
-  }
+  const openMenu = () => {}
 
   return (
     <header className={classes.header}>
       <div className={classes.headerWrapper}>
-        <Link href="/" className={classes.left}>
-          Home
-        </Link>
-        <h1>Daily Quiz</h1>
+        <div className={classes.left}>
+          <button type="button" className={classes.menuButton} aria-label="Menu" onClick={openMenu}>
+            <i className="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <h1>
+          <Link href="/">Daily Quiz</Link>
+        </h1>
+
         <div className={classes.right}>
-          <div>{currentUser ? `Hello, ${currentUser.displayName}!` : 'Welcome'}</div>
-          {currentUser && (
-            <button type="button" className="btn btn-link" onClick={handleLogout}>
-              Logout
-            </button>
-          )}
+          {currentUser && <UserPhotoMenu />}
+          <div>{!currentUser && 'Welcome'}</div>
         </div>
       </div>
       <HeaderMenu />
