@@ -28,9 +28,6 @@ export const NavMenu = ({ usageClass }: NavMenuProps) => {
             <Link href="/submit-question">Submit New Question for Quizzes</Link>
           </li>
         )}
-        <li className={classes.navMenuItem}>
-          <Link href="/user-profile">User Profile</Link>
-        </li>
         {currentUser?.isAdmin && (
           <li className={classes.navMenuItem}>
             <Link href="/pending-questions">Review Pending Questions</Link>

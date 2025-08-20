@@ -1,11 +1,20 @@
 @use '@/styles/mixins/_media-breakpoints.scss' as *;
 
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 250;
   background-color: #333;
   padding: 0.5rem;
 
   @include media-breakpoint-up('lg') {
     padding: 1rem 2rem;
+  }
+
+  h1 {
+    margin-bottom: 0;
   }
 }
 

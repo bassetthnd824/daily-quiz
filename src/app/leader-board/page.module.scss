@@ -1,3 +1,5 @@
+@use '@/styles/mixins/_media-breakpoints.scss' as *;
+
 .leaderBoard {
   ul {
     list-style: none;
@@ -10,7 +12,10 @@
     gap: 1rem;
     align-items: center;
     font-size: 1.5rem;
-    padding: 0 2rem;
+
+    @include media-breakpoint-up('md') {
+      padding: 0 2rem;
+    }
   }
 
   .totalScore {

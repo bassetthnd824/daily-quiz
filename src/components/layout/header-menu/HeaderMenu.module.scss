@@ -1,0 +1,30 @@
+@use '@/styles/mixins/_media-breakpoints.scss' as *;
+
+.headerMenu {
+  width: 80%;
+  height: 100vh;
+  z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: var(--white);
+  overflow-y: auto;
+  overflow-x: hidden;
+  color: var(--black);
+  padding: 1rem;
+
+  @include media-breakpoint-up('md') {
+    width: 40%;
+  }
+
+  @include media-breakpoint-up('lg') {
+    width: 25%;
+  }
+}
+
+.close {
+  cursor: pointer;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
