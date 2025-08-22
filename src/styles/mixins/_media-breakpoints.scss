@@ -1,0 +1,31 @@
+@use 'sass:map';
+
+$breakpoints: (
+  'sm': 576px,
+  'md': 768px,
+  'lg': 992px,
+  'xl': 1200px,
+  'xxl': 1400px,
+);
+
+@mixin media-breakpoint-up($screen-size) {
+  @if map.has-key($breakpoints, $screen-size) {
+    $breakpoint-value: map.get($breakpoints, $screen-size);
+    @media (min-width: $breakpoint-value) {
+      @content;
+    }
+  } @else {
+    @warn "Breakpoint '#{$screen-size}' not found in $breakpoints map for media-breakpoint-up.";
+  }
+}
+
+@mixin media-breakpoint-down($screen-size) {
+  @if map.has-key($breakpoints, $screen-size) {
+    $breakpoint-value: map.get($breakpoints, $screen-size);
+    @media (max-width: #{$breakpoint-value - 1}) {
+      @content;
+    }
+  } @else {
+    @warn "Breakpoint '#{$screen-size}' not found in $breakpoints map for media-breakpoint-down.";
+  }
+}

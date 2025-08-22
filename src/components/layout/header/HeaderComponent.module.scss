@@ -1,6 +1,30 @@
+@use '@/styles/mixins/_media-breakpoints.scss' as *;
+
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 250;
   background-color: #333;
-  padding: 1rem 2rem;
+  padding: 0.5rem;
+
+  @include media-breakpoint-up('lg') {
+    padding: 1rem 2rem;
+  }
+
+  h1 {
+    margin-bottom: 0;
+  }
+}
+
+.menuButton {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--white);
+  padding: 0.75rem;
 }
 
 .headerWrapper {
@@ -8,11 +32,16 @@
   justify-content: space-between;
 }
 
-.left, .right {
+.left,
+.right {
   flex-grow: 1;
   flex-basis: 0;
 }
 
 .right {
   text-align: right;
+  display: flex;
+  justify-content: right;
+  padding-top: 0.25rem;
+  padding-right: 0.5rem;
 }

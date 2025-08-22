@@ -1,0 +1,40 @@
+@use '@/styles/mixins/_media-breakpoints.scss' as *;
+
+.userNamePhoto {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.userName {
+  white-space: nowrap;
+}
+
+.userMenu {
+  position: relative;
+}
+
+.menuTrigger {
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: var(--white);
+  color: var(--black);
+  border: 0.0625rem solid var(--light-gray);
+  padding: 0.75rem 1rem;
+  z-index: 1000;
+  text-align: right;
+
+  @include media-breakpoint-up('md') {
+    padding: 0.75rem 1rem;
+  }
+
+  @include media-breakpoint-up('lg') {
+    padding: 1.25rem 2.5rem;
+  }
+}

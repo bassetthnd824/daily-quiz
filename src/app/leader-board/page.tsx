@@ -3,7 +3,7 @@
 import { LeaderboardEntry } from '@/models/leaderboard-entry.model'
 import { useEffect, useState } from 'react'
 import classes from './page.module.scss'
-import Image from 'next/image'
+import UserPhoto from '@/components/ui-elements/UserPhoto/UserPhoto'
 
 const LeaderBoard = () => {
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>()
@@ -39,9 +39,7 @@ const LeaderBoard = () => {
       {leaderboardEntries &&
         leaderboardEntries.map((leaderboardEntry) => (
           <li key={leaderboardEntry.userId}>
-            <div className={classes.imageWrapper}>
-              <Image src={leaderboardEntry.photoURL} alt="User's profile photo" width={40} height={40}></Image>
-            </div>
+            <UserPhoto photoURL={leaderboardEntry.photoURL} />
             <div className={classes.displayName}>{leaderboardEntry.displayName}</div>
             <div className={classes.totalScore}>{leaderboardEntry.totalScore}</div>
           </li>
