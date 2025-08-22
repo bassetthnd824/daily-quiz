@@ -33,6 +33,10 @@ const getQuizForDate = async (date: string): Promise<Quiz | undefined> => {
         date: getCurrentDate(),
       }
 
+      if (quiz.questions.length === 0) {
+        return
+      }
+
       quizDao.addQuiz(transaction, quiz)
       if (process.env.NEXT_PUBLIC_APP_ENV !== 'emulator') {
         questionDao.setLastUsedDate(transaction, quiz.questions)

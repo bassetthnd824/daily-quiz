@@ -7,6 +7,7 @@ import Summary from '@/components/quiz/summary/Summary'
 import { UserAnswer } from '@/models/user-answer.model'
 import { Quiz as QuizModel } from '@/models/quiz.model'
 import { useAuth } from '@/context/user-context'
+import NoQuiz from '@/components/quiz/no-quiz/NoQuiz'
 
 export type QuizProps = {
   quiz: QuizModel
@@ -20,6 +21,7 @@ const Quiz = ({ quiz }: QuizProps) => {
 
   const activeQuestionIndex = userAnswers.length
   const uid = currentUser?.uid
+  const noQuiz = quiz.questions.length === 0 && !quiz.summaries?.[uid!]
   const quizIsComplete = quiz.summaries?.[uid!] || activeQuestionIndex === quiz.questions.length
 
   const handleSelectAnswer = useCallback((selectedAnswer: UserAnswer) => {
@@ -29,6 +31,10 @@ const Quiz = ({ quiz }: QuizProps) => {
   }, [])
 
   const handleSkipAnswer = useCallback(() => handleSelectAnswer({ answer: '', timeToAnswer: 0 }), [handleSelectAnswer])
+
+  if (noQuiz) {
+    return <NoQuiz />
+  }
 
   if (quizIsComplete) {
     return <Summary userAnswers={userAnswers} questions={quiz.questions} prevSummary={quiz.summaries?.[uid!]} />
