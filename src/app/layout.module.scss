@@ -4,11 +4,17 @@
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  max-width: 75rem;
+  margin: 0 auto;
 }
 
 .main {
-  padding: 2rem;
   flex: 1;
+  background-color: var(--background);
+}
+
+.mainWrapper {
+  padding: 2rem;
   margin: 5rem auto 0;
   max-width: 55rem;
   min-width: 23.375rem;
