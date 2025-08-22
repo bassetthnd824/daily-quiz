@@ -19,7 +19,11 @@ export const HeaderMenu: React.FC<HeaderMenuProps> = ({ onClose }: HeaderMenuPro
       <div className={classes.logo}>
         <h2>Daily Quiz</h2>
       </div>
-      {currentUser && <NavMenu usageClass="headerNav"></NavMenu>}
+      {currentUser && (
+        <div onClick={onClose}>
+          <NavMenu usageClass="headerNav"></NavMenu>
+        </div>
+      )}
     </div>
   )
 }
