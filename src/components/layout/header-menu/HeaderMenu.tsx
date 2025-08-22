@@ -3,6 +3,7 @@
 import { NavMenu } from '@/components/nav-menu/NavMenu'
 import { useAuth } from '@/context/user-context'
 import classes from './HeaderMenu.module.scss'
+import Link from 'next/link'
 
 type HeaderMenuProps = {
   onClose: () => void
@@ -17,7 +18,9 @@ export const HeaderMenu: React.FC<HeaderMenuProps> = ({ onClose }: HeaderMenuPro
         <i className="fas fa-times"></i>
       </div>
       <div className={classes.logo}>
-        <h2>Daily Quiz</h2>
+        <h2>
+          <Link href="/">Daily Quiz</Link>
+        </h2>
       </div>
       {currentUser && (
         <div onClick={onClose}>

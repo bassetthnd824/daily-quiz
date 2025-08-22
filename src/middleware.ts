@@ -17,8 +17,7 @@ export const middleware = async (request: NextRequest) => {
       const invalidCsrfTokenResponse = NextResponse.json({ message: ERROR_CODE_INVALID_CSRF }, { status: 403 })
 
       try {
-        const csrfRequestToken = cookieStore.get(CSRF_TOKEN_NAME)?.value ?? ''
-        console.log(csrfRequestToken)
+        const csrfRequestToken = request.headers.get(CSRF_TOKEN_NAME) ?? ''
         const isTokenValid = await verifyCsrfToken(csrfRequestToken)
 
         if (!isTokenValid) {

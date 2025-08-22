@@ -19,7 +19,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <UserContextProvider>
             <BackdropContextProvider>
               <HeaderComponent />
-              <main className={classes.main}>{children}</main>
+              <main className={classes.main}>
+                <div className={classes.mainWrapper}>{children}</div>
+              </main>
               <FooterComponent />
             </BackdropContextProvider>
           </UserContextProvider>
