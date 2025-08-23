@@ -19,7 +19,7 @@ export const middleware = async (request: NextRequest) => {
         const isTokenValid = await verifyCsrfToken(csrfRequestToken)
 
         if (!isTokenValid) {
-          console.log('Token did not verify')
+          console.error('Token did not verify', csrfRequestToken)
           return invalidCsrfTokenResponse
         }
       } catch (error) {
