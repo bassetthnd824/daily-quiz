@@ -19,7 +19,9 @@ export const HeaderMenu: React.FC<HeaderMenuProps> = ({ onClose }: HeaderMenuPro
       </div>
       <div className={classes.logo}>
         <h2>
-          <Link href="/">Daily Quiz</Link>
+          <Link href="/" onClick={onClose}>
+            Daily Quiz
+          </Link>
         </h2>
       </div>
       {currentUser && (
