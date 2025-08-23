@@ -1,6 +1,6 @@
 'use client'
 
-import { CSRF_TOKEN_NAME } from '@/util/constants'
+import { CSRF_TOKEN_NAME } from '@/constants/constants'
 import { getCookie } from '@/util/csrf-tokens'
 import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
