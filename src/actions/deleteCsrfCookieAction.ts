@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { CSRF_TOKEN_NAME } from '@/util/constants'
+import { CSRF_TOKEN_NAME } from '@/constants/constants'
 
 const deleteCsrfCookieAction = async (): Promise<void> => {
   try {

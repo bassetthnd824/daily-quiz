@@ -5,7 +5,7 @@ import { AnswerState } from '@/components/quiz/quiz/Quiz'
 import { Question as QuestionModel } from '@/models/question.model'
 import { useRef, useState } from 'react'
 import { UserAnswer } from '@/models/user-answer.model'
-import { CORRECT_TIME, QUESTION_TIME, SELECTED_TIME } from '@/models/quiz.model'
+import { CORRECT_TIME, QUESTION_TIME, SELECTED_TIME } from '@/constants/constants'
 
 export type QuestionProps = {
   question?: QuestionModel

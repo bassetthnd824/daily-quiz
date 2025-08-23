@@ -1,10 +1,8 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { CSRF_TOKEN_NAME, ERROR_CODE_INVALID_CSRF, IS_PRODUCTION } from '@/util/constants'
+import { CSRF_TOKEN_NAME, ERROR_CODE_INVALID_CSRF, IS_PRODUCTION, SESSION_COOKIE } from '@/constants/constants'
 import { generateCsrfToken, verifyCsrfToken } from '@/util/csrf-tokens'
-
-export const SESSION_COOKIE = 'daily-quiz-session'
 
 // This function can be marked `async` if using `await` inside
 export const middleware = async (request: NextRequest) => {

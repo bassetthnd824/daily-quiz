@@ -1,7 +1,8 @@
 import { firestore } from '@/firebase/server'
 import dayjs from 'dayjs'
-import { DATE_FORMAT, getCurrentDate } from '@/util/utility'
+import { getCurrentDate } from '@/util/utility'
 import { Question } from '@/models/question.model'
+import { DATE_FORMAT, REUSE_QUESTION_AFTER_DAYS } from '@/constants/constants'
 
 const QUESTIONS = 'questions'
 
@@ -10,7 +11,7 @@ const getQuestions = async (transaction: FirebaseFirestore.Transaction): Promise
     return []
   }
 
-  const thirtyDaysAgo = dayjs().subtract(30, 'day')
+  const thirtyDaysAgo = dayjs().subtract(REUSE_QUESTION_AFTER_DAYS, 'day')
   const results = await transaction.get(
     firestore.collection(QUESTIONS).where('status', '==', 'A').where('lastUsedDate', '<', thirtyDaysAgo.format(DATE_FORMAT))
   )
