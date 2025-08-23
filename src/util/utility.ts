@@ -1,7 +1,5 @@
 import dayjs from 'dayjs'
 
-export const DATE_FORMAT = 'YYYY-MM-DD'
-
 export type MonthYear = {
   monthNdx: number
   month: string

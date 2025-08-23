@@ -2,14 +2,13 @@ import { quizDao } from '@/dao/quiz.dao'
 import { getCurrentDate, getMonthDateRange, shuffleArray } from '@/util/utility'
 import { questionDao } from '@/dao/question.dao'
 import { Question } from '@/models/question.model'
-import { QUESTION_TIME, Quiz } from '@/models/quiz.model'
+import { Quiz } from '@/models/quiz.model'
 import { firestore } from '@/firebase/server'
 import { UserAnswer } from '@/models/user-answer.model'
 import { QuizSummary } from '@/models/quiz-summary.model'
 import { QuizUser } from '@/models/user-profile.model'
 import { LeaderboardEntry } from '@/models/leaderboard-entry.model'
-
-const MAX_DAILY_QUESTIONS = 10
+import { MAX_DAILY_QUESTIONS, QUESTION_TIME } from '@/constants/constants'
 
 export type QuizzesParams = {
   userId?: string
