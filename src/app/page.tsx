@@ -21,7 +21,11 @@ const HomeComponent = () => {
         <li>You lose one point for every {delaySeconds > 1 ? `${delaySeconds} seconds` : 'second'} it takes you to answer.</li>
       </ul>
       <p className={classes.paragraph}>
-        Try it out <Link href="/todays-quiz">here</Link>!
+        Try it out{' '}
+        <Link href="/todays-quiz" className={classes.link}>
+          here
+        </Link>
+        !
       </p>
     </div>
   )
