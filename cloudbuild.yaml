@@ -6,6 +6,7 @@ steps:
       - '-c'
       - |
         docker build -t ${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA} \
+        --secret id=CSRF_SECRET,env=CSRF_SECRET \
         --secret id=FIREBASE_SERVICE_ACCOUNT,env=FIREBASE_SERVICE_ACCOUNT \
         --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,env=NEXT_PUBLIC_FIREBASE_API_KEY \
         --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,env=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN \
@@ -15,6 +16,7 @@ steps:
         --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,env=NEXT_PUBLIC_FIREBASE_APP_ID \
         .
     secretEnv: 
+      - 'CSRF_SECRET'
       - 'FIREBASE_SERVICE_ACCOUNT'
       - 'NEXT_PUBLIC_FIREBASE_API_KEY'
       - 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'
@@ -48,6 +50,8 @@ steps:
 
 availableSecrets:
   secretManager:
+  - versionName: projects/daily-quiz-464300/secrets/CSRF_SECRET/versions/latest
+    env: 'CSRF_SECRET'
   - versionName: projects/daily-quiz-464300/secrets/FIREBASE_SERVICE_ACCOUNT/versions/latest
     env: 'FIREBASE_SERVICE_ACCOUNT'
   - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_API_KEY/versions/latest

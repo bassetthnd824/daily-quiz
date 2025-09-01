@@ -1,3 +1,4 @@
+import 'server-only'
 import { firestore } from '@/firebase/server'
 import dayjs from 'dayjs'
 import { getCurrentDate } from '@/util/utility'

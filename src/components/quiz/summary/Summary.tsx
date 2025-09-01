@@ -6,6 +6,8 @@ import { UserAnswer } from '@/models/user-answer.model'
 import { useEffect, useState } from 'react'
 import { getCurrentDate } from '@/util/utility'
 import { QuizSummary } from '@/models/quiz-summary.model'
+import { CSRF_TOKEN_NAME } from '@/constants/constants'
+import { getCookie } from '@/util/csrf-tokens'
 
 export type SummaryProps = {
   userAnswers: UserAnswer[]
@@ -21,9 +23,12 @@ const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
   useEffect(() => {
     const patchQuiz = async () => {
       try {
+        const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
+
         const quizPatchResponse = await fetch(`/api/quiz/${getCurrentDate()}`, {
           method: 'PATCH',
           headers: {
+            [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
@@ -32,10 +37,15 @@ const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
             questions,
           }),
         })
+
+        if (!quizPatchResponse.ok) {
+          throw new Error('Failed to patch quiz')
+        }
+
         const data = await quizPatchResponse.json()
         setQuizSummary(data)
       } catch (error) {
-        setError(error as unknown as string)
+        setError((error as Error).message)
       } finally {
         setLoading(false)
       }

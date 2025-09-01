@@ -1,3 +1,4 @@
+import 'server-only'
 import { quizDao } from '@/dao/quiz.dao'
 import { getCurrentDate, getMonthDateRange, shuffleArray } from '@/util/utility'
 import { questionDao } from '@/dao/question.dao'

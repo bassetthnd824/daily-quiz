@@ -1,37 +1,67 @@
-import { atou, createSecret, createToken, utoa, verifyToken } from '@edge-csrf/core'
+import { CSRF_TOKEN_NAME } from '@/constants/constants'
+import crypto from 'crypto'
+import { NextRequest } from 'next/server'
 
-const CONFIG = {
-  SALT_LENGTH: 49,
-  SECRET_LENGTH: 48,
+const secret = process.env.CSRF_SECRET || 'a-very-secret-key'
+
+if (secret === 'a-very-secret-key') {
+  console.warn('WARNING: Using default CSRF secret. Set the CSRF_SECRET environment variable in production.')
 }
 
-const secretUint8Array = createSecret(CONFIG.SECRET_LENGTH)
-
-export const generateCsrfToken = async (): Promise<string> => {
-  const tokenUint8Arr = await createToken(secretUint8Array, CONFIG.SALT_LENGTH)
-  return utoa(tokenUint8Arr)
+export const generateCsrfToken = (): string => {
+  const salt = crypto.randomBytes(16).toString('hex')
+  const hmac = crypto.createHmac('sha256', secret)
+  hmac.update(salt)
+  return `${salt}-${hmac.digest('hex')}`
 }
 
-export const verifyCsrfToken = async (token: string): Promise<boolean> => {
-  const tokenUint8Arr = atou(token)
-  return await verifyToken(tokenUint8Arr, secretUint8Array)
+export const validateCsrfToken = (token: string): boolean => {
+  if (!token || typeof token !== 'string') {
+    return false
+  }
+
+  const parts = token.split('-')
+  if (parts.length !== 2) {
+    return false
+  }
+
+  const salt = parts[0]
+  const hmacReceived = parts[1]
+
+  const hmac = crypto.createHmac('sha256', secret)
+  hmac.update(salt)
+  const hmacCalculated = hmac.digest('hex')
+
+  return crypto.timingSafeEqual(Buffer.from(hmacReceived), Buffer.from(hmacCalculated))
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Handler = (req: NextRequest, context?: any) => Promise<Response>
+
+export const withCsrf = (handler: Handler): Handler => {
+  return async (req, context) => {
+    const csrfToken = req.cookies.get(CSRF_TOKEN_NAME)?.value
+
+    if (!csrfToken || !validateCsrfToken(csrfToken)) {
+      return new Response('Invalid CSRF token', { status: 403 })
+    }
+
+    return handler(req, context)
+  }
 }
 
 export const getCookie = (name: string) => {
-  const nameEQ = name + '='
-  const ca = document.cookie.split(';')
+  const cookieName = name + '='
+  const decodedCookie = decodeURIComponent(document.cookie)
+  const cookieArray = decodedCookie.split(';')
 
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i]
+  for (let i = 0; i < cookieArray.length; i++) {
+    const cookie = cookieArray[i].trim()
 
-    while (c.charAt(0) === ' ') {
-      c = c.substring(1, c.length)
-    }
-
-    if (c.indexOf(nameEQ) === 0) {
-      return c.substring(nameEQ.length, c.length)
+    if (cookie.indexOf(cookieName) === 0) {
+      return cookie.substring(cookieName.length, cookie.length)
     }
   }
 
-  return null
+  return ''
 }

@@ -1,3 +1,4 @@
+import 'server-only'
 import { QuizzesParams } from '@/bo/quiz.bo'
 import { firestore } from '@/firebase/server'
 import { QuizSummary } from '@/models/quiz-summary.model'

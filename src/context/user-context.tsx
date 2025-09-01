@@ -1,7 +1,9 @@
 'use client'
 
+import { CSRF_TOKEN_NAME } from '@/constants/constants'
 import { auth } from '@/firebase/client'
 import { QuizUser, UserProfile } from '@/models/user-profile.model'
+import { getCookie } from '@/util/csrf-tokens'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
@@ -30,7 +32,7 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
         return
       }
 
-      const response = await await fetch('/api/auth/session')
+      const response = await fetch('/api/auth/session')
 
       if (!response.ok) {
         setSessionChecked(true)
@@ -60,42 +62,46 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
     return auth.onAuthStateChanged(async (user) => {
       if (!user) {
         setCurrentUser(null)
-      } else {
-        let userProfile: UserProfile
-        const userResponse = await fetch(`/api/auth/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({
-            idToken: await user.getIdToken(),
-            userId: user.uid,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-          }),
-        })
+        return
+      }
 
-        if (userResponse.ok) {
-          const userJson = await userResponse.json()
-          if (userJson) {
-            userProfile = {
-              ...userJson,
-            }
+      let userProfile: UserProfile
+      const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
 
-            setCurrentUser({
-              uid: user.uid,
-              email: user.email ? user.email : undefined,
-              emailVerified: user.emailVerified,
-              phoneNumber: user.phoneNumber ? user.phoneNumber : undefined,
-              ...userProfile,
-            })
-          } else {
-            console.error('Could not get user profile')
+      const userResponse = await fetch(`/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          idToken: await user.getIdToken(),
+          userId: user.uid,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        }),
+      })
+
+      if (userResponse.ok) {
+        const userJson = await userResponse.json()
+        if (userJson) {
+          userProfile = {
+            ...userJson,
           }
+
+          setCurrentUser({
+            uid: user.uid,
+            email: user.email ? user.email : undefined,
+            emailVerified: user.emailVerified,
+            phoneNumber: user.phoneNumber ? user.phoneNumber : undefined,
+            ...userProfile,
+          })
         } else {
           console.error('Could not get user profile')
         }
+      } else {
+        console.error('Could not get user profile')
       }
     })
   }, [])

@@ -1,3 +1,4 @@
+import 'server-only'
 import { firestore } from '@/firebase/server'
 import { UserProfile } from '@/models/user-profile.model'
 

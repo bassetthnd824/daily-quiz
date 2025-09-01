@@ -3,11 +3,12 @@ import { userService } from '@/bo/user.bo'
 import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
 import { QuestionStatus } from '@/models/question-status.model'
 import { Question } from '@/models/question.model'
+import { withCsrf } from '@/util/csrf-tokens'
 import { getCurrentDate } from '@/util/utility'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const POST = async (request: NextRequest) => {
+const POST_handler = async (request: NextRequest) => {
   try {
     const cookieStore = await cookies()
 
@@ -46,3 +47,5 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse('Internal Error', { status: 500 })
   }
 }
+
+export const POST = withCsrf(POST_handler)
