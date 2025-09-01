@@ -1,6 +1,7 @@
 import { quizService } from '@/bo/quiz.bo'
 import { userService } from '@/bo/user.bo'
 import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
+import { withCsrf } from '@/util/csrf-tokens'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -24,7 +25,7 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export const PATCH = async (request: NextRequest, { params }: { params: Promise<{ date: string }> }) => {
+const PATCH_handler = async (request: NextRequest, { params }: { params: Promise<{ date: string }> }) => {
   try {
     const cookieStore = await cookies()
 
@@ -53,3 +54,5 @@ export const PATCH = async (request: NextRequest, { params }: { params: Promise<
     return new NextResponse('Internal Error', { status: 500 })
   }
 }
+
+export const PATCH = withCsrf(PATCH_handler)

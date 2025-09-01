@@ -1,3 +1,4 @@
+import 'server-only'
 import { questionDao } from '@/dao/question.dao'
 import { Question } from '@/models/question.model'
 import { firestore } from '@/firebase/server'

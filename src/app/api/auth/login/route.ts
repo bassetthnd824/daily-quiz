@@ -1,9 +1,9 @@
 import { userService } from '@/bo/user.bo'
+import { CSRF_TOKEN_NAME, IS_PRODUCTION, ONE_HOUR, TWO_WEEKS } from '@/constants/constants'
 import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
+import { generateCsrfToken } from '@/util/csrf-tokens'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-
-const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000
 
 export const POST = async (request: NextRequest) => {
   try {
@@ -27,6 +27,16 @@ export const POST = async (request: NextRequest) => {
       path: '/',
       httpOnly: true,
       maxAge: TWO_WEEKS,
+      sameSite: 'strict',
+      secure: IS_PRODUCTION,
+    })
+
+    cookieStore.set(CSRF_TOKEN_NAME, generateCsrfToken(), {
+      path: '/',
+      httpOnly: false,
+      maxAge: ONE_HOUR,
+      sameSite: 'strict',
+      secure: IS_PRODUCTION,
     })
 
     const userProfile = await userService.getUserProfile(postBody.userId)

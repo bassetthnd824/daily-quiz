@@ -1,3 +1,4 @@
+import 'server-only'
 import { userDao } from '@/dao/user.dao'
 import { auth, firestore } from '@/firebase/server'
 import { QuizUser, UserProfile } from '@/models/user-profile.model'

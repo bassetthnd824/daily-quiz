@@ -10,12 +10,11 @@
     "emulators": "firebase emulators:exec 'npm test'"
   },
   "dependencies": {
-    "@edge-csrf/core": "^2.5.3-cloudflare-rc1",
     "cookie": "^1.0.2",
     "dayjs": "^1.11.13",
     "firebase": "^11.10.0",
     "firebase-admin": "^13.4.0",
-    "next": "15.3.3",
+    "next": "^15.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.62.0",

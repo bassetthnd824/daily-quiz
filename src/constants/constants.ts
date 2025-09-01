@@ -15,3 +15,6 @@ export const SELECTED_TIME = 1000
 export const CORRECT_TIME = 2000
 
 export const DATE_FORMAT = 'YYYY-MM-DD'
+
+export const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000
+export const ONE_HOUR = 60 * 60 * 1000

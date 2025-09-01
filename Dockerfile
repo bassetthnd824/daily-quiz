@@ -9,6 +9,7 @@ RUN corepack enable npm && npm ci
 # Stage 2: Build the application
 FROM base AS builder
 WORKDIR /src/app
+ARG CSRF_SECRET
 ARG FIREBASE_SERVICE_ACCOUNT
 ARG NEXT_PUBLIC_FIREBASE_API_KEY
 ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
@@ -18,13 +19,15 @@ ARG NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
 ARG NEXT_PUBLIC_FIREBASE_APP_ID
 COPY --from=deps /src/app/node_modules ./node_modules
 COPY . .
-RUN --mount=type=secret,id=FIREBASE_SERVICE_ACCOUNT,target=/run/secrets/FIREBASE_SERVICE_ACCOUNT_FILE \
+RUN --mount=type=secret,id=CSRF_SECRET,target=/run/secrets/CSRF_SECRET \
+  --mount=type=secret,id=FIREBASE_SERVICE_ACCOUNT,target=/run/secrets/FIREBASE_SERVICE_ACCOUNT_FILE \
   --mount=type=secret,id=NEXT_PUBLIC_FIREBASE_API_KEY,target=/run/secrets/NEXT_PUBLIC_FIREBASE_API_KEY \
   --mount=type=secret,id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,target=/run/secrets/NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN \
   --mount=type=secret,id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,target=/run/secrets/NEXT_PUBLIC_FIREBASE_PROJECT_ID \
   --mount=type=secret,id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,target=/run/secrets/NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET \
   --mount=type=secret,id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,target=/run/secrets/NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID \
   --mount=type=secret,id=NEXT_PUBLIC_FIREBASE_APP_ID,target=/run/secrets/NEXT_PUBLIC_FIREBASE_APP_ID \
+  export CSRF_SECRET=$(cat /run/secrets/CSRF_SECRET) && \
   export FIREBASE_SERVICE_ACCOUNT=$(cat /run/secrets/FIREBASE_SERVICE_ACCOUNT_FILE) && \
   export NEXT_PUBLIC_FIREBASE_API_KEY=$(cat /run/secrets/NEXT_PUBLIC_FIREBASE_API_KEY) && \
   export NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$(cat /run/secrets/NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) && \
