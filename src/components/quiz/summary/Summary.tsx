@@ -85,17 +85,19 @@ const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
           <span className={classes.text}>answered incorrectly</span>
         </p>
       </div>
-      <div>
+      <div className={classes.answerGrid}>
         {quizSummary?.answers.map((answer, index) => {
           return (
-            <div className={classes.answerRow} key={index}>
-              <div className={classes.answerNumber}>{index + 1}</div>
-              <div className={classes.answerQuestion}>
+            <>
+              <div className={classes.answerNumber} key={`${index}-number`}>
+                <p>{index + 1}</p>
+              </div>
+              <div className={classes.answerQuestion} key={`${index}-question`}>
                 <p className={classes.question}>Q: {answer?.questionText}</p>
                 <p className={`${classes.userAnswer} ${answer?.status ? classes[answer.status] : ''}`}>A: {answer.answer || 'Skipped'}</p>
                 <p className={classes.question}>Score: {answer.bonus}</p>
               </div>
-            </div>
+            </>
           )
         })}
       </div>
