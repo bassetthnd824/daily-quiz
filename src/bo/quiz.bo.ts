@@ -81,7 +81,7 @@ export const getQuizResults = async (
       answer.status = 'wrong'
     }
 
-    answer.bonus = answer.status === 'correct' ? QUESTION_TIME / 2000 - answer.timeToAnswer : 0
+    answer.bonus = answer.status === 'correct' ? QUESTION_TIME / 2000 - Math.floor(answer.timeToAnswer / 2) : 0
 
     score += answer.status === 'correct' ? answer.bonus : 0
   }, 0)
