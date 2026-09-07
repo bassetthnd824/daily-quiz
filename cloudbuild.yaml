@@ -1,5 +1,14 @@
 steps:
-  # Step 1: Build the Docker image
+  # Step 1: Run unit tests
+  - name: 'node:22'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        npm ci
+        npm test
+
+  # Step 2: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash' 
     args:
@@ -28,13 +37,13 @@ steps:
     env:
       - "DOCKER_BUILDKIT=1" # Enable Docker BuildKit
 
-  # Step 2: Push the Docker image to Artifact Registry
+  # Step 3: Push the Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA}'
 
-  # Step 3: Deploy the image to Cloud Run
+  # Step 4: Deploy the image to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
