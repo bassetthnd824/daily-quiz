@@ -1,11 +1,11 @@
-import { quizService } from '@/bo/quiz.bo'
+import { quizService, QuizSubmitError } from '@/bo/quiz.bo'
 import { userService } from '@/bo/user.bo'
 import { firestore } from '@/firebase/server'
 import { withCsrf } from '@/util/csrf-tokens'
 import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (request: NextRequest, { params }: { params: Promise<{ date: string }> }) => {
+export const GET = async (_request: NextRequest, { params }: { params: Promise<{ date: string }> }) => {
   try {
     const session = await requireSession()
 
@@ -18,7 +18,13 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { date } = await params
-    return NextResponse.json(await quizService.getQuizForDate(date))
+    const quiz = await quizService.getQuizView(date, session.uid)
+
+    if (!quiz) {
+      return new NextResponse('Quiz not found', { status: 404 })
+    }
+
+    return NextResponse.json(quiz)
   } catch (error) {
     console.log(error)
     return new NextResponse('Internal Error', { status: 500 })
@@ -38,15 +44,21 @@ const PATCH_handler = async (request: NextRequest, { params }: { params: Promise
     }
 
     const { date } = await params
-    const userQuizEntry = await request.json()
     const quizUser = await userService.getQuizUser(session.uid)
 
     if (!quizUser) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    return NextResponse.json(await quizService.getQuizResults(date, quizUser, userQuizEntry))
+    const body: unknown = await request.json()
+    const answers = body && typeof body === 'object' && 'answers' in body ? (body as { answers: unknown }).answers : undefined
+
+    return NextResponse.json(await quizService.submitAnswers(date, quizUser, answers))
   } catch (error) {
+    if (error instanceof QuizSubmitError) {
+      return new NextResponse(error.message, { status: error.status })
+    }
+
     console.log(error)
     return new NextResponse('Internal Error', { status: 500 })
   }

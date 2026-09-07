@@ -3,18 +3,104 @@ import { quizDao } from '@/dao/quiz.dao'
 import { getCurrentDate, getMonthDateRange, shuffleArray } from '@/util/utility'
 import { questionDao } from '@/dao/question.dao'
 import { Question } from '@/models/question.model'
-import { Quiz } from '@/models/quiz.model'
+import { Quiz, QuizView } from '@/models/quiz.model'
 import { firestore } from '@/firebase/server'
-import { UserAnswer } from '@/models/user-answer.model'
+import { SubmittedAnswer, UserAnswer } from '@/models/user-answer.model'
 import { QuizSummary } from '@/models/quiz-summary.model'
 import { QuizUser } from '@/models/user-profile.model'
 import { LeaderboardEntry } from '@/models/leaderboard-entry.model'
-import { MAX_DAILY_QUESTIONS, QUESTION_TIME } from '@/constants/constants'
+import { MAX_DAILY_QUESTIONS, MAX_POINTS, QUESTION_TIME } from '@/constants/constants'
 
 export type QuizzesParams = {
   userId?: string
   begDate?: string
   endDate?: string
+}
+
+export class QuizSubmitError extends Error {
+  readonly status: number
+
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'QuizSubmitError'
+    this.status = status
+  }
+}
+
+const storedCorrectAnswer = (question: Question) => question.answers[0]
+
+const maxAnswerSeconds = QUESTION_TIME / 1000
+const secondsPerPoint = maxAnswerSeconds / MAX_POINTS
+
+const pointsForCorrectAnswer = (timeToAnswer: number) => {
+  const clamped = Math.min(Math.max(0, timeToAnswer), maxAnswerSeconds)
+  return Math.max(0, MAX_POINTS - Math.floor(clamped / secondsPerPoint))
+}
+
+const isSubmittedAnswer = (value: unknown): value is SubmittedAnswer => {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate.questionId === 'string' &&
+    candidate.questionId.length > 0 &&
+    typeof candidate.answer === 'string' &&
+    typeof candidate.timeToAnswer === 'number' &&
+    Number.isFinite(candidate.timeToAnswer)
+  )
+}
+
+const toQuizView = (quiz: Quiz, uid: string): QuizView => {
+  const summary = quiz.summaries?.[uid]
+
+  return {
+    date: quiz.date,
+    questions: summary
+      ? []
+      : quiz.questions.map((question) => ({
+          id: question.id,
+          text: question.text,
+          answers: shuffleArray(question.answers),
+        })),
+    summary,
+  }
+}
+
+const scoreAnswers = (quiz: Quiz, answers: SubmittedAnswer[]): UserAnswer[] => {
+  if (answers.length !== quiz.questions.length) {
+    throw new QuizSubmitError(400, 'Answer count does not match quiz')
+  }
+
+  const questionIds = new Set(answers.map((answer) => answer.questionId))
+  if (questionIds.size !== answers.length) {
+    throw new QuizSubmitError(400, 'Duplicate question answers')
+  }
+
+  const submittedById = new Map(answers.map((answer) => [answer.questionId, answer]))
+
+  return quiz.questions.map((question) => {
+    const submitted = submittedById.get(question.id)
+
+    if (!submitted) {
+      throw new QuizSubmitError(400, 'Missing answer for a quiz question')
+    }
+
+    const skipped = submitted.answer.trim() === ''
+    const correct = !skipped && submitted.answer === storedCorrectAnswer(question)
+    const status: UserAnswer['status'] = skipped ? 'skipped' : correct ? 'correct' : 'wrong'
+    const bonus = status === 'correct' ? pointsForCorrectAnswer(submitted.timeToAnswer) : 0
+
+    return {
+      questionId: question.id,
+      questionText: question.text,
+      answer: submitted.answer,
+      timeToAnswer: submitted.timeToAnswer,
+      status,
+      bonus,
+    }
+  })
 }
 
 const getTodaysQuiz = async (): Promise<Quiz | undefined> => {
@@ -47,6 +133,16 @@ const getQuizForDate = async (date: string): Promise<Quiz | undefined> => {
   return quiz
 }
 
+const getQuizView = async (date: string, uid: string): Promise<QuizView | undefined> => {
+  const quiz = await getQuizForDate(date)
+
+  if (!quiz) {
+    return undefined
+  }
+
+  return toQuizView(quiz, uid)
+}
+
 const getQuizzes = async ({ begDate, endDate }: QuizzesParams): Promise<Quiz[]> => {
   let quizzes: Quiz[] = []
 
@@ -57,52 +153,57 @@ const getQuizzes = async ({ begDate, endDate }: QuizzesParams): Promise<Quiz[]> 
   return quizzes
 }
 
-export const getQuizResults = async (
-  date: string,
-  quizUser: QuizUser,
-  { userAnswers, questions }: { userAnswers: UserAnswer[]; questions: Question[] }
-): Promise<QuizSummary> => {
-  const skippedAnswers = userAnswers.filter((answer) => !answer.answer)
-  const correctAnswers = userAnswers.filter((answer, index) => answer.answer === questions[index].answers[0])
+const getCompletedQuizDates = async (uid: string, { begDate, endDate }: QuizzesParams): Promise<string[]> => {
+  const quizzes = await getQuizzes({ begDate, endDate })
+  return quizzes.filter((quiz) => Boolean(quiz.summaries?.[uid])).map((quiz) => quiz.date)
+}
 
-  const skippedAnswersShare = Math.round((skippedAnswers.length / userAnswers.length) * 100)
-  const correctAnswersShare = Math.round((correctAnswers.length / userAnswers.length) * 100)
-  const wrongAnswersShare = 100 - skippedAnswersShare - correctAnswersShare
-  let score = 0
-
-  userAnswers.forEach((answer, index) => {
-    answer.questionText = questions[index].text
-
-    if (!answer.answer) {
-      answer.status = 'skipped'
-    } else if (answer.answer === questions[index].answers[0]) {
-      answer.status = 'correct'
-    } else {
-      answer.status = 'wrong'
-    }
-
-    answer.bonus = answer.status === 'correct' ? QUESTION_TIME / 2000 - Math.floor(answer.timeToAnswer / 2) : 0
-
-    score += answer.status === 'correct' ? answer.bonus : 0
-  }, 0)
-
-  const quizSummary: QuizSummary = {
-    skippedAnswersShare,
-    correctAnswersShare,
-    wrongAnswersShare,
-    answers: userAnswers,
-    score,
-    user: {
-      displayName: quizUser.nickname ? quizUser.nickname : quizUser.displayName,
-      photoURL: quizUser.photoURL,
-    },
+const submitAnswers = async (date: string, quizUser: QuizUser, answers: unknown): Promise<QuizSummary> => {
+  if (!firestore) {
+    throw new QuizSubmitError(500, 'Internal Error: no firestore')
   }
 
-  await firestore?.runTransaction(async (transaction) => {
-    quizDao.addQuizSummary(transaction, date, quizUser.uid, quizSummary)
-  })
+  if (!Array.isArray(answers) || !answers.every(isSubmittedAnswer)) {
+    throw new QuizSubmitError(400, 'Invalid answers')
+  }
 
-  return quizSummary
+  if (date !== getCurrentDate()) {
+    throw new QuizSubmitError(403, 'Quiz is not open for scoring')
+  }
+
+  return firestore.runTransaction(async (transaction) => {
+    const quiz = await quizDao.getQuizForDate(transaction, date)
+
+    if (!quiz || quiz.questions.length === 0) {
+      throw new QuizSubmitError(404, 'Quiz not found')
+    }
+
+    const existing = quiz.summaries?.[quizUser.uid]
+    if (existing) {
+      return existing
+    }
+
+    const scoredAnswers = scoreAnswers(quiz, answers)
+    const skippedCount = scoredAnswers.filter((answer) => answer.status === 'skipped').length
+    const correctCount = scoredAnswers.filter((answer) => answer.status === 'correct').length
+    const total = scoredAnswers.length
+    const skippedAnswersShare = Math.round((skippedCount / total) * 100)
+    const correctAnswersShare = Math.round((correctCount / total) * 100)
+    const quizSummary: QuizSummary = {
+      skippedAnswersShare,
+      correctAnswersShare,
+      wrongAnswersShare: 100 - skippedAnswersShare - correctAnswersShare,
+      answers: scoredAnswers,
+      score: scoredAnswers.reduce((sum, answer) => sum + (answer.bonus ?? 0), 0),
+      user: {
+        displayName: quizUser.nickname ? quizUser.nickname : quizUser.displayName,
+        photoURL: quizUser.photoURL,
+      },
+    }
+
+    quizDao.addQuizSummary(transaction, date, quizUser.uid, quizSummary)
+    return quizSummary
+  })
 }
 
 const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
@@ -153,7 +254,8 @@ const getRandomQuestions = async (transaction: FirebaseFirestore.Transaction): P
 export const quizService = {
   getTodaysQuiz,
   getQuizForDate,
-  getQuizzes,
-  getQuizResults,
+  getQuizView,
+  getCompletedQuizDates,
+  submitAnswers,
   getLeaderboard,
 }

@@ -6,3 +6,15 @@ export type Quiz = {
   questions: Question[]
   summaries?: Record<string, QuizSummary>
 }
+
+export type QuizQuestionView = {
+  id: string
+  text: string
+  answers: string[]
+}
+
+export type QuizView = {
+  date: string
+  questions: QuizQuestionView[]
+  summary?: QuizSummary
+}

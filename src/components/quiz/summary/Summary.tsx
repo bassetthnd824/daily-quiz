@@ -1,31 +1,29 @@
 'use client'
 
-import { Question } from '@/models/question.model'
 import classes from './Summary.module.scss'
-import { UserAnswer } from '@/models/user-answer.model'
+import { SubmittedAnswer } from '@/models/user-answer.model'
 import { useEffect, useState } from 'react'
-import { getCurrentDate } from '@/util/utility'
 import { QuizSummary } from '@/models/quiz-summary.model'
 import { CSRF_TOKEN_NAME } from '@/constants/constants'
 import { getCookie } from '@/util/csrf-tokens'
 
 export type SummaryProps = {
-  userAnswers: UserAnswer[]
-  questions: Question[]
+  date: string
+  userAnswers: SubmittedAnswer[]
   prevSummary?: QuizSummary
 }
 
-const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
+const Summary = ({ date, userAnswers, prevSummary }: SummaryProps) => {
   const [loading, setLoading] = useState(true)
   const [quizSummary, setQuizSummary] = useState<QuizSummary>()
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    const patchQuiz = async () => {
+    const submitQuiz = async () => {
       try {
         const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
 
-        const quizPatchResponse = await fetch(`/api/quiz/${getCurrentDate()}`, {
+        const quizPatchResponse = await fetch(`/api/quiz/${date}`, {
           method: 'PATCH',
           headers: {
             [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
@@ -33,13 +31,12 @@ const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
             Accept: 'application/json',
           },
           body: JSON.stringify({
-            userAnswers,
-            questions,
+            answers: userAnswers,
           }),
         })
 
         if (!quizPatchResponse.ok) {
-          throw new Error('Failed to patch quiz')
+          throw new Error('Failed to submit quiz')
         }
 
         const data = await quizPatchResponse.json()
@@ -52,12 +49,12 @@ const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
     }
 
     if (!prevSummary) {
-      patchQuiz()
+      submitQuiz()
     } else {
       setQuizSummary(prevSummary)
       setLoading(false)
     }
-  }, [questions, userAnswers, prevSummary])
+  }, [date, userAnswers, prevSummary])
 
   if (loading) {
     return <div>Loading...</div>

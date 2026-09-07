@@ -19,10 +19,10 @@ export const GET = async (request: NextRequest) => {
     const endDate = request.nextUrl.searchParams.get('endDate') ?? ''
 
     if (begDate && endDate) {
-      return NextResponse.json(await quizService.getQuizzes({ begDate, endDate }))
-    } else {
-      return NextResponse.json([])
+      return NextResponse.json(await quizService.getCompletedQuizDates(session.uid, { begDate, endDate }))
     }
+
+    return NextResponse.json([])
   } catch (error) {
     console.log(error)
     return new NextResponse('Internal Error', { status: 500 })

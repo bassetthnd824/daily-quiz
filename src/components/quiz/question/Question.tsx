@@ -2,20 +2,19 @@ import classes from '@/components/quiz/question/Question.module.scss'
 import QuestionTimer from '@/components/quiz/question-timer/QuestionTimer'
 import Answers from '@/components/quiz/answers/Answers'
 import { AnswerState } from '@/components/quiz/quiz/Quiz'
-import { Question as QuestionModel } from '@/models/question.model'
+import { QuizQuestionView } from '@/models/quiz.model'
 import { useRef, useState } from 'react'
-import { UserAnswer } from '@/models/user-answer.model'
+import { SubmittedAnswer } from '@/models/user-answer.model'
 import { CORRECT_TIME, QUESTION_TIME, SELECTED_TIME } from '@/constants/constants'
 
 export type QuestionProps = {
-  question?: QuestionModel
-  onSelectAnswer: (answer: UserAnswer) => void
+  question: QuizQuestionView
+  onSelectAnswer: (answer: SubmittedAnswer) => void
   onSkipAnswer: () => void
 }
 
 type Answer = {
   selectedAnswer: string
-  isCorrect: boolean | null
   timeToAnswer: number
 }
 
@@ -23,63 +22,34 @@ const Question = ({ question, onSelectAnswer, onSkipAnswer }: QuestionProps) => 
   const firstRenderTime = useRef(new Date().getTime())
   const [answer, setAnswer] = useState<Answer>({
     selectedAnswer: '',
-    isCorrect: null,
     timeToAnswer: 0,
   })
 
-  let timer = QUESTION_TIME
+  const timer = answer.selectedAnswer ? CORRECT_TIME : QUESTION_TIME
+  const answerState: AnswerState = answer.selectedAnswer ? 'answered' : ''
 
-  if (answer.selectedAnswer) {
-    timer = CORRECT_TIME
-  }
-
-  if (answer.isCorrect !== null) {
-    timer = SELECTED_TIME
-  }
-
-  const handleSelectAnswer = (answer: string) => {
+  const handleSelectAnswer = (selectedAnswer: string) => {
     const timeToAnswer = Math.floor((new Date().getTime() - firstRenderTime.current) / 1000)
 
     setAnswer({
-      selectedAnswer: answer,
-      isCorrect: null,
+      selectedAnswer,
       timeToAnswer,
     })
 
     setTimeout(() => {
-      setAnswer({
-        selectedAnswer: answer,
-        isCorrect: question!.answers[0] === answer,
+      onSelectAnswer({
+        questionId: question.id,
+        answer: selectedAnswer,
         timeToAnswer,
       })
-
-      setTimeout(() => {
-        onSelectAnswer({
-          answer,
-          timeToAnswer,
-        })
-      }, CORRECT_TIME)
-    }, SELECTED_TIME)
-  }
-
-  let answerState: AnswerState = ''
-
-  if (answer.selectedAnswer && answer.isCorrect !== null) {
-    answerState = answer.isCorrect ? 'correct' : 'wrong'
-  } else if (answer.selectedAnswer) {
-    answerState = 'answered'
+    }, SELECTED_TIME + CORRECT_TIME)
   }
 
   return (
     <div className={classes.question}>
       <QuestionTimer key={timer} timeout={timer} onTimeout={answer.selectedAnswer === '' ? onSkipAnswer : null} mode={answerState} />
-      <h2>{question?.text}</h2>
-      <Answers
-        answers={question?.answers ?? []}
-        selectedAnswer={answer.selectedAnswer}
-        answerState={answerState}
-        onSelect={handleSelectAnswer}
-      />
+      <h2>{question.text}</h2>
+      <Answers answers={question.answers} selectedAnswer={answer.selectedAnswer} answerState={answerState} onSelect={handleSelectAnswer} />
     </div>
   )
 }

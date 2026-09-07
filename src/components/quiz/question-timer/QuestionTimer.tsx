@@ -14,7 +14,11 @@ const QuestionTimer = ({ timeout, onTimeout, mode }: QuestionTimerProps) => {
   const [remainingTime, setRemainingTime] = useState(timeout)
 
   useEffect(() => {
-    const timer = setTimeout(onTimeout!, timeout)
+    if (!onTimeout) {
+      return
+    }
+
+    const timer = setTimeout(onTimeout, timeout)
 
     return () => {
       clearTimeout(timer)

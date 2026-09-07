@@ -5,32 +5,29 @@ import Link from 'next/link'
 import classes from './page.module.scss'
 import dayjs from 'dayjs'
 import { getCurrentMonthYear, getMonthDateRange, getMonthFromNdx, MonthYear } from '@/util/utility'
-import { Quiz } from '@/models/quiz.model'
-import { useAuth } from '@/context/user-context'
 
 const PreviousQuiz = () => {
   const currentMonthYear = getCurrentMonthYear()
   const [monthYear, setMonthYear] = useState<MonthYear>(currentMonthYear)
-  const [quizzes, setQuizzes] = useState<Quiz[]>([])
-  const { currentUser } = useAuth()
-  const userId = currentUser?.uid
+  const [completedDates, setCompletedDates] = useState<string[]>([])
   const baseDate = dayjs(new Date(monthYear.year, monthYear.monthNdx, 1))
   const dayOfWeek = baseDate.day()
   const daysInMonth = baseDate.daysInMonth()
 
   useEffect(() => {
-    const getQuizzes = async () => {
+    const getCompletedDates = async () => {
       const { begDate, endDate } = getMonthDateRange()
 
       try {
         const quizzesResponse = await fetch(`/api/quiz?begDate=${begDate}&endDate=${endDate}`)
-        setQuizzes(await quizzesResponse.json())
+        const dates: unknown = await quizzesResponse.json()
+        setCompletedDates(Array.isArray(dates) ? dates : [])
       } catch (error) {
         console.log(error)
       }
     }
 
-    getQuizzes()
+    getCompletedDates()
   }, [currentMonthYear.monthNdx, currentMonthYear.year, daysInMonth])
 
   const incrementDisabled = monthYear.monthNdx === currentMonthYear.monthNdx && monthYear.year === currentMonthYear.year
@@ -46,8 +43,6 @@ const PreviousQuiz = () => {
       calendarArray.push('')
     }
   }
-
-  const userQuizzes = quizzes.filter((quiz) => Boolean(quiz.summaries?.[userId!]))
 
   const handleDecrmentMonthYear = () => {
     setMonthYear((prevMonthYear) => {
@@ -111,14 +106,14 @@ const PreviousQuiz = () => {
             <div className={classes.calendarDay}>S</div>
           </div>
           <div className={classes.calendarRow}>
-            {calendarArray.map((day) => {
+            {calendarArray.map((day, index) => {
               let content
-              let quiz
+              let hasQuiz = false
 
               if (day) {
                 const date = `${monthYear.year}-${String(monthYear.monthNdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                quiz = userQuizzes.find((quiz) => quiz.date === date)
-                if (quiz) {
+                hasQuiz = completedDates.includes(date)
+                if (hasQuiz) {
                   content = (
                     <Link className={classes.previousQuizLink} href={`/previous-quiz/${date}`}>
                       {day}
@@ -130,7 +125,7 @@ const PreviousQuiz = () => {
               }
 
               return (
-                <div key={Math.random()} className={`${classes.calendarDay} ${quiz ? classes.hasQuiz : ''}`}>
+                <div key={`${monthYear.year}-${monthYear.monthNdx}-${index}`} className={`${classes.calendarDay} ${hasQuiz ? classes.hasQuiz : ''}`}>
                   {content}
                 </div>
               )
