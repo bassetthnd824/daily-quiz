@@ -1,7 +1,6 @@
 'use client'
 
-import { CSRF_TOKEN_NAME } from '@/constants/constants'
-import { getCookie } from '@/util/csrf-tokens'
+import { csrfHeaders } from '@/util/get-cookie'
 import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 
@@ -38,7 +37,6 @@ const SubmitQuestion = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     setIsSubmitting(true)
-    const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
     const question = {
       text: data.text,
       correctAnswer: data.correctAnswer,
@@ -48,9 +46,9 @@ const SubmitQuestion = () => {
     const response = await fetch('/api/question', {
       method: 'POST',
       headers: {
-        [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        ...csrfHeaders(),
       },
       body: JSON.stringify(question),
     })

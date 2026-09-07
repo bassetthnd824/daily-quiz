@@ -1,7 +1,7 @@
 import { quizService, QuizSubmitError } from '@/bo/quiz.bo'
 import { userService } from '@/bo/user.bo'
 import { firestore } from '@/firebase/server'
-import { withCsrf } from '@/util/csrf-tokens'
+import { withCsrf } from '@/util/csrf'
 import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
 

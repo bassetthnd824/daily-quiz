@@ -2,6 +2,7 @@
 
 import { auth } from '@/firebase/client'
 import { QuizUser } from '@/models/user-profile.model'
+import { csrfHeaders } from '@/util/get-cookie'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
@@ -60,6 +61,7 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        ...csrfHeaders(),
       },
       body: JSON.stringify({ idToken }),
     })
@@ -74,7 +76,10 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const logout = async () => {
-    const response = await fetch('/api/auth/logout')
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: csrfHeaders(),
+    })
 
     if (!response.ok) {
       throw new Error('Logout failed')

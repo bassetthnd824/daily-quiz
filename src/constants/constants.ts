@@ -19,4 +19,3 @@ export const NEVER_USED_DATE = '1111-11-11'
 
 /** Cookie Max-Age is seconds. Firebase `createSessionCookie({ expiresIn })` is this value * 1000. */
 export const SESSION_MAX_AGE_SECONDS = 14 * 24 * 60 * 60
-export const CSRF_MAX_AGE_SECONDS = 60 * 60

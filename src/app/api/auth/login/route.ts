@@ -1,11 +1,11 @@
 import { userService } from '@/bo/user.bo'
-import { CSRF_MAX_AGE_SECONDS, CSRF_TOKEN_NAME, IS_PRODUCTION, SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from '@/constants/constants'
+import { IS_PRODUCTION, SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from '@/constants/constants'
 import { auth, firestore } from '@/firebase/server'
-import { generateCsrfToken } from '@/util/csrf-tokens'
+import { setCsrfCookie, withCsrf } from '@/util/csrf'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const POST = async (request: NextRequest) => {
+const POST_handler = async (request: NextRequest) => {
   try {
     if (!firestore || !auth) {
       return new NextResponse('Internal Error: no firestore or no auth', { status: 500 })
@@ -32,13 +32,7 @@ export const POST = async (request: NextRequest) => {
       secure: IS_PRODUCTION,
     })
 
-    cookieStore.set(CSRF_TOKEN_NAME, generateCsrfToken(), {
-      path: '/',
-      httpOnly: false,
-      maxAge: CSRF_MAX_AGE_SECONDS,
-      sameSite: 'strict',
-      secure: IS_PRODUCTION,
-    })
+    await setCsrfCookie()
 
     const userProfile = await userService.ensureUserProfile({
       userId: decoded.uid,
@@ -62,3 +56,5 @@ export const POST = async (request: NextRequest) => {
     return new NextResponse('Internal Error', { status: 500 })
   }
 }
+
+export const POST = withCsrf(POST_handler)

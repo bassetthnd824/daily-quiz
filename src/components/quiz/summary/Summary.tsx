@@ -4,8 +4,7 @@ import classes from './Summary.module.scss'
 import { SubmittedAnswer } from '@/models/user-answer.model'
 import { useEffect, useState } from 'react'
 import { QuizSummary } from '@/models/quiz-summary.model'
-import { CSRF_TOKEN_NAME } from '@/constants/constants'
-import { getCookie } from '@/util/csrf-tokens'
+import { csrfHeaders } from '@/util/get-cookie'
 
 export type SummaryProps = {
   date: string
@@ -21,14 +20,12 @@ const Summary = ({ date, userAnswers, prevSummary }: SummaryProps) => {
   useEffect(() => {
     const submitQuiz = async () => {
       try {
-        const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
-
         const quizPatchResponse = await fetch(`/api/quiz/${date}`, {
           method: 'PATCH',
           headers: {
-            [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
             'Content-Type': 'application/json',
             Accept: 'application/json',
+            ...csrfHeaders(),
           },
           body: JSON.stringify({
             answers: userAnswers,

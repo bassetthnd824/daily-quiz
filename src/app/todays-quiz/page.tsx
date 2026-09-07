@@ -1,10 +1,9 @@
 'use client'
 
 import Quiz from '@/components/quiz/quiz/Quiz'
-import { CSRF_TOKEN_NAME } from '@/constants/constants'
 import { useAuth } from '@/context/user-context'
 import { QuizView } from '@/models/quiz.model'
-import { getCookie } from '@/util/csrf-tokens'
+import { csrfHeaders } from '@/util/get-cookie'
 import { useEffect, useState } from 'react'
 
 const TodaysQuiz = () => {
@@ -20,12 +19,11 @@ const TodaysQuiz = () => {
 
     const ensureQuiz = async () => {
       try {
-        const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
         const data = await fetch('/api/quiz', {
           method: 'POST',
           headers: {
-            [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
             Accept: 'application/json',
+            ...csrfHeaders(),
           },
         })
 
