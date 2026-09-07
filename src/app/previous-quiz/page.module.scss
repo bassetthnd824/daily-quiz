@@ -27,6 +27,15 @@
   }
 }
 
+.monthNav {
+  display: inline-block;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
 .calendarRow {
   display: flex;
   flex-wrap: wrap;

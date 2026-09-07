@@ -1,5 +1,3 @@
-'use client'
-
 import classes from './page.module.scss'
 import { getCalendarDays, MonthYear, toIsoDate } from '@/util/utility'
 import Link from 'next/link'
@@ -8,28 +6,34 @@ type CalendarMonthProps = {
   monthYear: MonthYear
   completedDates: string[]
   nextDisabled: boolean
-  onPrev: () => void
-  onNext: () => void
+  prevHref: string
+  nextHref: string
 }
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
-const CalendarMonth = ({ monthYear, completedDates, nextDisabled, onPrev, onNext }: CalendarMonthProps) => {
+const CalendarMonth = ({ monthYear, completedDates, nextDisabled, prevHref, nextHref }: CalendarMonthProps) => {
   const days = getCalendarDays(monthYear)
 
   return (
     <div className={classes.calendar}>
       <div className={classes.calendarHeader}>
         <div className={classes.monthYearRow}>
-          <button type="button" className="btn" onClick={onPrev}>
+          <Link href={prevHref} className={`btn ${classes.monthNav}`}>
             &lt;&lt;
-          </button>
+          </Link>
           <h3>
             {monthYear.month} {monthYear.year}
           </h3>
-          <button type="button" className="btn" onClick={onNext} disabled={nextDisabled}>
-            &gt;&gt;
-          </button>
+          {nextDisabled ? (
+            <button type="button" className="btn" disabled>
+              &gt;&gt;
+            </button>
+          ) : (
+            <Link href={nextHref} className={`btn ${classes.monthNav}`}>
+              &gt;&gt;
+            </Link>
+          )}
         </div>
         <div className={classes.calendarRow}>
           {WEEKDAYS.map((label, index) => (

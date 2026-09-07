@@ -1,31 +1,55 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import classes from './page.module.scss'
-import { getCurrentMonthYear, getMonthDateRange, MonthYear, shiftMonthYear } from '@/util/utility'
+import { quizService } from '@/bo/quiz.bo'
+import { requirePageSession } from '@/util/require-session'
+import { getCurrentMonthYear, getMonthDateRange, getMonthFromNdx, MonthYear, shiftMonthYear } from '@/util/utility'
 import CalendarMonth from './CalendarMonth'
+import classes from './page.module.scss'
 
-const PreviousQuiz = () => {
+type PreviousQuizProps = {
+  searchParams: Promise<{ month?: string | string[] }>
+}
+
+const parseMonthYear = (monthParam?: string): MonthYear => {
+  const current = getCurrentMonthYear()
+
+  if (!monthParam) {
+    return current
+  }
+
+  const match = /^(\d{4})-(\d{2})$/.exec(monthParam)
+
+  if (!match) {
+    return current
+  }
+
+  const year = Number(match[1])
+  const monthNdx = Number(match[2]) - 1
+
+  if (monthNdx < 0 || monthNdx > 11) {
+    return current
+  }
+
+  if (year > current.year || (year === current.year && monthNdx > current.monthNdx)) {
+    return current
+  }
+
+  return {
+    year,
+    monthNdx,
+    month: getMonthFromNdx(monthNdx),
+  }
+}
+
+const monthYearHref = (monthYear: MonthYear) =>
+  `/previous-quiz?month=${monthYear.year}-${String(monthYear.monthNdx + 1).padStart(2, '0')}`
+
+const PreviousQuiz = async ({ searchParams }: PreviousQuizProps) => {
+  const uid = await requirePageSession()
+  const { month } = await searchParams
+  const monthParam = Array.isArray(month) ? month[0] : month
   const currentMonthYear = getCurrentMonthYear()
-  const [monthYear, setMonthYear] = useState<MonthYear>(currentMonthYear)
-  const [completedDates, setCompletedDates] = useState<string[]>([])
-
-  useEffect(() => {
-    const getCompletedDates = async () => {
-      const { begDate, endDate } = getMonthDateRange(monthYear)
-
-      try {
-        const quizzesResponse = await fetch(`/api/quiz?begDate=${begDate}&endDate=${endDate}`)
-        const dates: unknown = await quizzesResponse.json()
-        setCompletedDates(Array.isArray(dates) ? dates : [])
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
-    getCompletedDates()
-  }, [monthYear])
-
+  const monthYear = parseMonthYear(monthParam)
+  const { begDate, endDate } = getMonthDateRange(monthYear)
+  const completedDates = await quizService.getCompletedQuizDates(uid, { begDate, endDate })
   const nextDisabled = monthYear.monthNdx === currentMonthYear.monthNdx && monthYear.year === currentMonthYear.year
 
   return (
@@ -35,8 +59,8 @@ const PreviousQuiz = () => {
         monthYear={monthYear}
         completedDates={completedDates}
         nextDisabled={nextDisabled}
-        onPrev={() => setMonthYear((current) => shiftMonthYear(current, -1))}
-        onNext={() => setMonthYear((current) => shiftMonthYear(current, 1))}
+        prevHref={monthYearHref(shiftMonthYear(monthYear, -1))}
+        nextHref={monthYearHref(shiftMonthYear(monthYear, 1))}
       />
     </div>
   )

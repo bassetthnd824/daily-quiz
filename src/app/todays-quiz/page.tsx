@@ -1,11 +1,13 @@
-'use client'
+import { quizService } from '@/bo/quiz.bo'
+import Quiz from '@/components/quiz/quiz/Quiz'
+import { requirePageSession } from '@/util/require-session'
 
-import QuizLoader from '@/components/quiz/quiz/QuizLoader'
-import { useQuiz } from '@/hooks/use-quiz'
+export const dynamic = 'force-dynamic'
 
-const TodaysQuiz = () => {
-  const { loading, error, quiz } = useQuiz({ ensureToday: true })
-  return <QuizLoader loading={loading} error={error} quiz={quiz} />
+const TodaysQuiz = async () => {
+  const uid = await requirePageSession()
+  const quiz = await quizService.ensureTodaysQuiz(uid)
+  return <Quiz quiz={quiz} />
 }
 
 export default TodaysQuiz

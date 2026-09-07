@@ -1,13 +1,22 @@
-'use client'
+import { quizService } from '@/bo/quiz.bo'
+import Quiz from '@/components/quiz/quiz/Quiz'
+import { QuizView } from '@/models/quiz.model'
+import { requirePageSession } from '@/util/require-session'
 
-import QuizLoader from '@/components/quiz/quiz/QuizLoader'
-import { useQuiz } from '@/hooks/use-quiz'
-import { useParams } from 'next/navigation'
+type QuizForDateProps = {
+  params: Promise<{ date: string }>
+}
 
-const QuizForDate = () => {
-  const params = useParams<{ date: string }>()
-  const { loading, error, quiz } = useQuiz({ date: params.date })
-  return <QuizLoader loading={loading} error={error} quiz={quiz} />
+const emptyQuiz = (date: string): QuizView => ({
+  date,
+  questions: [],
+})
+
+const QuizForDate = async ({ params }: QuizForDateProps) => {
+  const uid = await requirePageSession()
+  const { date } = await params
+  const quiz = (await quizService.getQuizView(date, uid)) ?? emptyQuiz(date)
+  return <Quiz quiz={quiz} />
 }
 
 export default QuizForDate
