@@ -46,6 +46,8 @@ steps:
       - '--allow-unauthenticated' # Optional: Allow public access
       - '--port'
       - '3000' # Next.js default port
+      - '--set-secrets'
+      - 'CSRF_SECRET=CSRF_SECRET:latest,FIREBASE_SERVICE_ACCOUNT=FIREBASE_SERVICE_ACCOUNT:latest'
 
 availableSecrets:
   secretManager:
