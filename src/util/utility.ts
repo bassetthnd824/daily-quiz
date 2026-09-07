@@ -13,6 +13,8 @@ export const getCurrentDate = () => {
   return yourDate.toISOString().split('T')[0]
 }
 
+export const yearMonthFromDate = (date: string) => date.slice(0, 7)
+
 export const isWeekday = (date: string) => {
   const day = dayjs(date).day()
   return day !== 0 && day !== 6

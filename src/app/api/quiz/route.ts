@@ -1,5 +1,4 @@
 import { quizService, QuizSubmitError } from '@/bo/quiz.bo'
-import { firestore } from '@/firebase/server'
 import { withCsrf } from '@/util/csrf'
 import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
@@ -10,10 +9,6 @@ export const GET = async (request: NextRequest) => {
 
     if (!session.ok) {
       return session.response
-    }
-
-    if (!firestore) {
-      return new NextResponse('Internal Error: no firestore', { status: 500 })
     }
 
     const begDate = request.nextUrl.searchParams.get('begDate') ?? ''
@@ -36,10 +31,6 @@ const POST_handler = async () => {
 
     if (!session.ok) {
       return session.response
-    }
-
-    if (!firestore) {
-      return new NextResponse('Internal Error: no firestore', { status: 500 })
     }
 
     return NextResponse.json(await quizService.ensureTodaysQuiz(session.uid))

@@ -1,7 +1,6 @@
 import 'server-only'
 import { NEVER_USED_DATE } from '@/constants/constants'
 import { questionDao } from '@/dao/question.dao'
-import { firestore } from '@/firebase/server'
 import { QuestionStatus } from '@/models/question-status.model'
 import { QuizUser } from '@/models/user-profile.model'
 import { getCurrentDate } from '@/util/utility'
@@ -30,10 +29,6 @@ const submitQuestion = async (quizUser: QuizUser, body: unknown): Promise<void> 
     throw new QuestionSubmitError(403, 'Not allowed to submit questions')
   }
 
-  if (!firestore) {
-    throw new QuestionSubmitError(500, 'Internal Error: no firestore')
-  }
-
   if (!body || typeof body !== 'object') {
     throw new QuestionSubmitError(400, 'Invalid question')
   }
@@ -49,15 +44,13 @@ const submitQuestion = async (quizUser: QuizUser, body: unknown): Promise<void> 
     throw new QuestionSubmitError(400, 'Invalid question')
   }
 
-  await firestore.runTransaction(async (transaction) => {
-    questionDao.addQuestion(transaction, {
-      text,
-      answers: [correctAnswer, ...wrongAnswers],
-      lastUsedDate: NEVER_USED_DATE,
-      status: QuestionStatus.PENDING,
-      submittedBy: quizUser.displayName,
-      dateSubmitted: getCurrentDate(),
-    })
+  await questionDao.addQuestion({
+    text,
+    answers: [correctAnswer, ...wrongAnswers],
+    lastUsedDate: NEVER_USED_DATE,
+    status: QuestionStatus.PENDING,
+    submittedBy: quizUser.displayName,
+    dateSubmitted: getCurrentDate(),
   })
 }
 

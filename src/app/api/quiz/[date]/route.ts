@@ -1,6 +1,5 @@
 import { quizService, QuizSubmitError } from '@/bo/quiz.bo'
 import { userService } from '@/bo/user.bo'
-import { firestore } from '@/firebase/server'
 import { withCsrf } from '@/util/csrf'
 import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,10 +10,6 @@ export const GET = async (_request: NextRequest, { params }: { params: Promise<{
 
     if (!session.ok) {
       return session.response
-    }
-
-    if (!firestore) {
-      return new NextResponse('Internal Error: no firestore', { status: 500 })
     }
 
     const { date } = await params
@@ -37,10 +32,6 @@ const PATCH_handler = async (request: NextRequest, { params }: { params: Promise
 
     if (!session.ok) {
       return session.response
-    }
-
-    if (!firestore) {
-      return new NextResponse('Internal Error: no firestore', { status: 500 })
     }
 
     const { date } = await params

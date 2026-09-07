@@ -1,21 +1,16 @@
 import 'server-only'
-import { quizDao } from '@/dao/quiz.dao'
-import { getCurrentDate, getMonthDateRange, isWeekday, shuffleArray } from '@/util/utility'
-import { questionDao } from '@/dao/question.dao'
-import { Question } from '@/models/question.model'
-import { Quiz, QuizView } from '@/models/quiz.model'
-import { firestore } from '@/firebase/server'
-import { SubmittedAnswer, UserAnswer } from '@/models/user-answer.model'
-import { QuizSummary } from '@/models/quiz-summary.model'
-import { QuizUser } from '@/models/user-profile.model'
-import { LeaderboardEntry } from '@/models/leaderboard-entry.model'
 import { MAX_DAILY_QUESTIONS, MAX_POINTS, QUESTION_TIME } from '@/constants/constants'
-
-export type QuizzesParams = {
-  userId?: string
-  begDate?: string
-  endDate?: string
-}
+import { questionDao } from '@/dao/question.dao'
+import { quizDao } from '@/dao/quiz.dao'
+import { requireFirestore } from '@/firebase/server'
+import { LeaderboardEntry } from '@/models/leaderboard-entry.model'
+import { Question } from '@/models/question.model'
+import { DateRange, Quiz, QuizView } from '@/models/quiz.model'
+import { QuizSummary } from '@/models/quiz-summary.model'
+import { SubmittedAnswer, UserAnswer } from '@/models/user-answer.model'
+import { QuizUser } from '@/models/user-profile.model'
+import { getCurrentDate, isWeekday, shuffleArray, yearMonthFromDate } from '@/util/utility'
+import { Transaction } from 'firebase-admin/firestore'
 
 export class QuizSubmitError extends Error {
   readonly status: number
@@ -108,6 +103,11 @@ const emptyQuizView = (date: string): QuizView => ({
   questions: [],
 })
 
+const pickRandomQuestions = async (transaction: Transaction): Promise<Question[]> => {
+  const eligible = await questionDao.getEligibleQuestions(transaction)
+  return shuffleArray(eligible).slice(0, MAX_DAILY_QUESTIONS)
+}
+
 const getQuizView = async (date: string, uid: string): Promise<QuizView | undefined> => {
   const quiz = await quizDao.getQuiz(date)
 
@@ -119,24 +119,21 @@ const getQuizView = async (date: string, uid: string): Promise<QuizView | undefi
 }
 
 const ensureTodaysQuiz = async (uid: string): Promise<QuizView> => {
-  if (!firestore) {
-    throw new QuizSubmitError(500, 'Internal Error: no firestore')
-  }
-
+  const db = requireFirestore()
   const date = getCurrentDate()
 
   if (!isWeekday(date)) {
     return emptyQuizView(date)
   }
 
-  const quiz = await firestore.runTransaction(async (transaction) => {
-    const existing = await quizDao.getQuizForDate(transaction, date)
+  const quiz = await db.runTransaction(async (transaction) => {
+    const existing = await quizDao.getQuizInTransaction(transaction, date)
 
     if (existing) {
       return existing
     }
 
-    const questions = await getRandomQuestions(transaction)
+    const questions = await pickRandomQuestions(transaction)
 
     if (questions.length === 0) {
       return undefined
@@ -147,7 +144,7 @@ const ensureTodaysQuiz = async (uid: string): Promise<QuizView> => {
       date,
     }
 
-    quizDao.addQuiz(transaction, created)
+    quizDao.createQuiz(transaction, created)
 
     if (process.env.NEXT_PUBLIC_APP_ENV !== 'emulator') {
       questionDao.setLastUsedDate(transaction, questions)
@@ -163,25 +160,13 @@ const ensureTodaysQuiz = async (uid: string): Promise<QuizView> => {
   return toQuizView(quiz, uid)
 }
 
-const getQuizzes = async ({ begDate, endDate }: QuizzesParams): Promise<Quiz[]> => {
-  let quizzes: Quiz[] = []
-
-  await firestore?.runTransaction(async (transaction) => {
-    quizzes = await quizDao.getQuizzes(transaction, { begDate, endDate })
-  })
-
-  return quizzes
-}
-
-const getCompletedQuizDates = async (uid: string, { begDate, endDate }: QuizzesParams): Promise<string[]> => {
-  const quizzes = await getQuizzes({ begDate, endDate })
-  return quizzes.filter((quiz) => Boolean(quiz.summaries?.[uid])).map((quiz) => quiz.date)
+const getCompletedQuizDates = async (uid: string, range: DateRange): Promise<string[]> => {
+  const quizzes = await quizDao.listQuizSummaries(range)
+  return quizzes.filter((quiz) => Boolean(quiz.summaries[uid])).map((quiz) => quiz.date)
 }
 
 const submitAnswers = async (date: string, quizUser: QuizUser, answers: unknown): Promise<QuizSummary> => {
-  if (!firestore) {
-    throw new QuizSubmitError(500, 'Internal Error: no firestore')
-  }
+  const db = requireFirestore()
 
   if (!Array.isArray(answers) || !answers.every(isSubmittedAnswer)) {
     throw new QuizSubmitError(400, 'Invalid answers')
@@ -191,8 +176,8 @@ const submitAnswers = async (date: string, quizUser: QuizUser, answers: unknown)
     throw new QuizSubmitError(403, 'Quiz is not open for scoring')
   }
 
-  return firestore.runTransaction(async (transaction) => {
-    const quiz = await quizDao.getQuizForDate(transaction, date)
+  return db.runTransaction(async (transaction) => {
+    const quiz = await quizDao.getQuizInTransaction(transaction, date)
 
     if (!quiz || quiz.questions.length === 0) {
       throw new QuizSubmitError(404, 'Quiz not found')
@@ -209,66 +194,34 @@ const submitAnswers = async (date: string, quizUser: QuizUser, answers: unknown)
     const total = scoredAnswers.length
     const skippedAnswersShare = Math.round((skippedCount / total) * 100)
     const correctAnswersShare = Math.round((correctCount / total) * 100)
+    const score = scoredAnswers.reduce((sum, answer) => sum + (answer.bonus ?? 0), 0)
+    const displayName = quizUser.nickname ? quizUser.nickname : quizUser.displayName
     const quizSummary: QuizSummary = {
       skippedAnswersShare,
       correctAnswersShare,
       wrongAnswersShare: 100 - skippedAnswersShare - correctAnswersShare,
       answers: scoredAnswers,
-      score: scoredAnswers.reduce((sum, answer) => sum + (answer.bonus ?? 0), 0),
+      score,
       user: {
-        displayName: quizUser.nickname ? quizUser.nickname : quizUser.displayName,
+        displayName,
         photoURL: quizUser.photoURL,
       },
     }
 
-    quizDao.addQuizSummary(transaction, date, quizUser.uid, quizSummary)
+    quizDao.setQuizSummary(transaction, date, quizUser.uid, quizSummary)
+    quizDao.incrementLeaderboard(transaction, yearMonthFromDate(date), {
+      userId: quizUser.uid,
+      displayName,
+      photoURL: quizUser.photoURL,
+      totalScore: score,
+    })
+
     return quizSummary
   })
 }
 
 const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
-  const results: Map<string, LeaderboardEntry> = new Map<string, LeaderboardEntry>()
-
-  let quizzes: Quiz[] = []
-  await firestore?.runTransaction(async (transaction) => {
-    quizzes = await quizDao.getQuizzes(transaction, getMonthDateRange())
-  })
-
-  quizzes.forEach((quiz) => {
-    if (quiz.summaries) {
-      Object.entries(quiz.summaries).forEach(([key, value]) => {
-        if (results.has(key)) {
-          let entry = results.get(key)
-          if (entry) {
-            entry.totalScore += value.score
-          } else {
-            entry = {
-              userId: key,
-              displayName: value.user.displayName,
-              photoURL: value.user.photoURL,
-              totalScore: value.score,
-            }
-            results.set(key, entry)
-          }
-        } else {
-          const entry = {
-            userId: key,
-            displayName: value.user.displayName,
-            photoURL: value.user.photoURL,
-            totalScore: value.score,
-          }
-          results.set(key, entry)
-        }
-      })
-    }
-  })
-
-  return [...results.values()].sort((a, b) => b.totalScore - a.totalScore)
-}
-
-const getRandomQuestions = async (transaction: FirebaseFirestore.Transaction): Promise<Question[]> => {
-  const randomQuestions = shuffleArray(await questionDao.getQuestions(transaction))
-  return randomQuestions.slice(0, MAX_DAILY_QUESTIONS)
+  return quizDao.listLeaderboard(yearMonthFromDate(getCurrentDate()))
 }
 
 export const quizService = {

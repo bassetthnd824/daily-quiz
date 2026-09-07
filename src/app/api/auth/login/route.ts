@@ -1,16 +1,13 @@
 import { userService } from '@/bo/user.bo'
 import { IS_PRODUCTION, SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from '@/constants/constants'
-import { auth, firestore } from '@/firebase/server'
+import { requireAuth } from '@/firebase/server'
 import { setCsrfCookie, withCsrf } from '@/util/csrf'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 const POST_handler = async (request: NextRequest) => {
   try {
-    if (!firestore || !auth) {
-      return new NextResponse('Internal Error: no firestore or no auth', { status: 500 })
-    }
-
+    const auth = requireAuth()
     const body: unknown = await request.json()
     const idToken = body && typeof body === 'object' && 'idToken' in body && typeof body.idToken === 'string' ? body.idToken : ''
 

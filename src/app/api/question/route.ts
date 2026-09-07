@@ -1,6 +1,5 @@
 import { questionService, QuestionSubmitError } from '@/bo/question.bo'
 import { userService } from '@/bo/user.bo'
-import { firestore } from '@/firebase/server'
 import { withCsrf } from '@/util/csrf'
 import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,10 +10,6 @@ const POST_handler = async (request: NextRequest) => {
 
     if (!session.ok) {
       return session.response
-    }
-
-    if (!firestore) {
-      return new NextResponse('Internal Error: no firestore', { status: 500 })
     }
 
     const quizUser = await userService.getQuizUser(session.uid)

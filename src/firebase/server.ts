@@ -26,4 +26,20 @@ if (currentApps.length <= 0) {
   auth = getAuth(currentApps[0])
 }
 
+export const requireFirestore = (): Firestore => {
+  if (!firestore) {
+    throw new Error('Firestore is not initialized')
+  }
+
+  return firestore
+}
+
+export const requireAuth = (): Auth => {
+  if (!auth) {
+    throw new Error('Auth is not initialized')
+  }
+
+  return auth
+}
+
 export { firestore, auth }

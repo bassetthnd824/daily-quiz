@@ -1,20 +1,14 @@
 import 'server-only'
 
 import { SESSION_COOKIE } from '@/constants/constants'
-import { auth } from '@/firebase/server'
+import { requireAuth } from '@/firebase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export type RequireSessionResult = { ok: true; uid: string } | { ok: false; response: NextResponse }
 
 export const requireSession = async (): Promise<RequireSessionResult> => {
-  if (!auth) {
-    return {
-      ok: false,
-      response: new NextResponse('Internal Error: no auth', { status: 500 }),
-    }
-  }
-
+  const auth = requireAuth()
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get(SESSION_COOKIE)
 

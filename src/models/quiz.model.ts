@@ -18,3 +18,8 @@ export type QuizView = {
   questions: QuizQuestionView[]
   summary?: QuizSummary
 }
+
+export type DateRange = {
+  begDate: string
+  endDate: string
+}
