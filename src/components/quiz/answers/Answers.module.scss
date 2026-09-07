@@ -15,16 +15,19 @@
     &.answered,
     &.answered:hover {
       background-color: var(--warning);
+      color: var(--dark-gray);
     }
 
     &.correct,
     &.correct:hover {
       background-color: var(--success);
+      color: var(--white);
     }
 
     &.wrong,
     &.wrong:hover {
       background-color: var(--danger);
+      color: var(--white);
     }
   }
 }

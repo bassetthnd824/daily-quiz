@@ -1,71 +1,117 @@
 @use 'sass:color';
 
 :root {
+  --page-background: #000;
   --background: #666;
   --foreground: #ededed;
+  --surface: #333;
+  --header-background: #333;
+  --header-foreground: #fff;
+  --header-accent: transparent;
+  --border: #fff;
   --primary: #0d6efd;
   --darkened-primary: #{color.adjust(#0d6efd, $lightness: -10%)};
   --lightened-primary: #{color.adjust(#0d6efd, $lightness: 10%)};
+  --on-primary: #fff;
   --danger: #dc3545;
   --warning: #ffc107;
   --success: #198754;
   --dark-gray: #333;
+  --light-gray: #c4c4c4;
   --white: #fff;
   --black: #000;
 }
 
 [data-theme='dark'] {
+  color-scheme: dark;
+  --page-background: #000;
   --background: #666;
   --foreground: #ededed;
+  --surface: #333;
+  --header-background: #333;
+  --header-foreground: #fff;
+  --header-accent: transparent;
+  --border: #fff;
   --primary: #0d6efd;
   --darkened-primary: #{color.adjust(#0d6efd, $lightness: -10%)};
   --lightened-primary: #{color.adjust(#0d6efd, $lightness: 10%)};
+  --on-primary: #fff;
   --danger: #dc3545;
   --warning: #ffc107;
   --success: #198754;
   --dark-gray: #333;
+  --light-gray: #c4c4c4;
   --white: #fff;
   --black: #000;
 }
 
 [data-theme='light'] {
-  --background: #fff;
-  --foreground: #000;
+  color-scheme: light;
+  --page-background: #e6e6e6;
+  --background: #f4f4f4;
+  --foreground: #1a1a1a;
+  --surface: #fff;
+  --header-background: #e8e8e8;
+  --header-foreground: #1a1a1a;
+  --header-accent: #6b6b6b;
+  --border: #6b6b6b;
   --primary: #0d6efd;
   --darkened-primary: #{color.adjust(#0d6efd, $lightness: -10%)};
-  --lightened-primary: #{color.adjust(#0d6efd, $lightness: 10%)};
+  --lightened-primary: #0b5ed7;
+  --on-primary: #fff;
   --danger: #dc3545;
   --warning: #ffc107;
   --success: #198754;
   --dark-gray: #333;
+  --light-gray: #c4c4c4;
   --white: #fff;
   --black: #000;
 }
 
+// University of Alabama: Crimson Flame #9E1B32, Victory White #FFFFFF, Bama Burgundy #772432
 [data-theme='bama'] {
-  --background: #666;
-  --foreground: #ededed;
-  --primary: #0d6efd;
-  --darkened-primary: #{color.adjust(#0d6efd, $lightness: -10%)};
-  --lightened-primary: #{color.adjust(#0d6efd, $lightness: 10%)};
+  color-scheme: light;
+  --page-background: #f3e6e8;
+  --background: #fff8f9;
+  --foreground: #1a0e12;
+  --surface: #fff;
+  --header-background: #9e1b32;
+  --header-foreground: #fff;
+  --header-accent: #772432;
+  --border: #8a5a62;
+  --primary: #9e1b32;
+  --darkened-primary: #772432;
+  --lightened-primary: #c4233f;
+  --on-primary: #fff;
   --danger: #dc3545;
   --warning: #ffc107;
   --success: #198754;
   --dark-gray: #333;
+  --light-gray: #c1c6c9;
   --white: #fff;
   --black: #000;
 }
 
+// Auburn University: Auburn Blue #0B2341, Auburn Orange #E86100, Samford Brick Orange #CC4E0B
 [data-theme='barn'] {
-  --background: #666;
-  --foreground: #ededed;
-  --primary: #0d6efd;
-  --darkened-primary: #{color.adjust(#0d6efd, $lightness: -10%)};
-  --lightened-primary: #{color.adjust(#0d6efd, $lightness: 10%)};
+  color-scheme: dark;
+  --page-background: #06101d;
+  --background: #233954;
+  --foreground: #eef2f7;
+  --surface: #0b2341;
+  --header-background: #0b2341;
+  --header-foreground: #fff;
+  --header-accent: #e86100;
+  --border: #c5cdd6;
+  --primary: #e86100;
+  --darkened-primary: #cc4e0b;
+  --lightened-primary: #ea711a;
+  --on-primary: #000;
   --danger: #dc3545;
   --warning: #ffc107;
   --success: #198754;
   --dark-gray: #333;
+  --light-gray: #9da7b3;
   --white: #fff;
   --black: #000;
 }
@@ -78,7 +124,7 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--black);
+  background: var(--page-background);
   font-family: Arial, Helvetica, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
@@ -140,7 +186,7 @@ form {
 
 .btn {
   background-color: var(--primary);
-  color: var(--white);
+  color: var(--on-primary);
   border: 0.0625rem solid transparent;
   font-size: inherit;
   padding: 0.75rem 1rem;
@@ -155,6 +201,7 @@ form {
   &:disabled:hover {
     background-color: var(--background);
     border-color: var(--background);
+    color: var(--foreground);
   }
 }
 

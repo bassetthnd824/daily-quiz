@@ -1,5 +1,5 @@
 .summary {
-  background-color: var(--dark-gray);
+  background-color: var(--surface);
   border: 0.0625rem solid transparent;
   border-radius: 0.5rem;
   padding: 2rem;
@@ -43,7 +43,7 @@
   align-content: center;
   align-items: stretch;
   justify-items: stretch;
-  border: 0.0625rem solid var(--white);
+  border: 0.0625rem solid var(--border);
 }
 
 .answerNumber {
@@ -51,8 +51,8 @@
   font-weight: 600;
   text-align: right;
   padding: 0.75rem;
-  border-right: 0.0625rem solid var(--white);
-  border-bottom: 0.0625rem solid var(--white);
+  border-right: 0.0625rem solid var(--border);
+  border-bottom: 0.0625rem solid var(--border);
   display: flex;
   align-items: center;
   justify-content: right;
@@ -60,7 +60,7 @@
 
 .answerQuestion {
   padding: 0.75rem;
-  border-bottom: 0.0625rem solid var(--white);
+  border-bottom: 0.0625rem solid var(--border);
 }
 
 .question {
@@ -73,10 +73,12 @@
 
   &.correct {
     background-color: var(--success);
+    color: var(--white);
   }
 
   &.wrong {
     background-color: var(--danger);
+    color: var(--white);
   }
 
   &.skipped {
