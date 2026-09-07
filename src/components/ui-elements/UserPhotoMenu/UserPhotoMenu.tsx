@@ -55,7 +55,7 @@ const UserPhotoMenu: React.FC<UserPhotoMenuProps> = ({ isOpen, open, close }: Us
         <p>{currentUser && currentUser.email}</p>
         <p>{currentUser && currentUser.phoneNumber}</p>
         <p>{currentUser && currentUser.nickname}</p>
-        <p className="mt-16">{currentUser && <Link href="/user-profile">User Profile</Link>}</p>
+        <p className="mt-16">{currentUser && <Link href="/user-profile" onClick={close}>User Profile</Link>}</p>
         {currentUser && (
           <button className="btn btn-link" onClick={handleLogout}>
             Logout
