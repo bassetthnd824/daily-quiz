@@ -1,19 +1,33 @@
 'use client'
 
 import Quiz from '@/components/quiz/quiz/Quiz'
+import { CSRF_TOKEN_NAME } from '@/constants/constants'
+import { useAuth } from '@/context/user-context'
 import { QuizView } from '@/models/quiz.model'
-import { getCurrentDate } from '@/util/utility'
+import { getCookie } from '@/util/csrf-tokens'
 import { useEffect, useState } from 'react'
 
 const TodaysQuiz = () => {
+  const { currentUser } = useAuth()
   const [loading, setLoading] = useState(true)
   const [quiz, setQuiz] = useState<QuizView>()
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    const getQuiz = async () => {
+    if (!currentUser) {
+      return
+    }
+
+    const ensureQuiz = async () => {
       try {
-        const data = await fetch(`/api/quiz/${getCurrentDate()}`)
+        const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
+        const data = await fetch('/api/quiz', {
+          method: 'POST',
+          headers: {
+            [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
+            Accept: 'application/json',
+          },
+        })
 
         if (!data.ok) {
           throw new Error('Failed to load quiz')
@@ -28,8 +42,8 @@ const TodaysQuiz = () => {
       }
     }
 
-    getQuiz()
-  }, [])
+    ensureQuiz()
+  }, [currentUser])
 
   return (
     <>

@@ -16,6 +16,11 @@ const QuizForDate = () => {
       try {
         const data = await fetch(`/api/quiz/${params.date}`)
 
+        if (data.status === 404) {
+          setQuiz({ date: params.date, questions: [] })
+          return
+        }
+
         if (!data.ok) {
           throw new Error('Failed to load quiz')
         }
