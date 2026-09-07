@@ -3,7 +3,9 @@ import { NEVER_USED_DATE } from '@/constants/constants'
 import { questionDao } from '@/dao/question.dao'
 import { QuestionStatus } from '@/models/question-status.model'
 import { QuizUser } from '@/models/user-profile.model'
+import { submitQuestionSchema } from '@/schemas/question.schema'
 import { getCurrentDate } from '@/util/utility'
+import * as v from 'valibot'
 
 export class QuestionSubmitError extends Error {
   readonly status: number
@@ -15,38 +17,22 @@ export class QuestionSubmitError extends Error {
   }
 }
 
-const asNonEmptyString = (value: unknown): string | undefined => {
-  if (typeof value !== 'string') {
-    return undefined
-  }
-
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : undefined
-}
-
 const submitQuestion = async (quizUser: QuizUser, body: unknown): Promise<void> => {
   if (!quizUser.canSubmitQuestions && !quizUser.isAdmin) {
     throw new QuestionSubmitError(403, 'Not allowed to submit questions')
   }
 
-  if (!body || typeof body !== 'object') {
+  const parsed = v.safeParse(submitQuestionSchema, body)
+
+  if (!parsed.success) {
     throw new QuestionSubmitError(400, 'Invalid question')
   }
 
-  const payload = body as Record<string, unknown>
-  const text = asNonEmptyString(payload.text)
-  const correctAnswer = asNonEmptyString(payload.correctAnswer)
-  const wrongAnswers = Array.isArray(payload.answers)
-    ? payload.answers.map(asNonEmptyString).filter((answer): answer is string => Boolean(answer))
-    : []
-
-  if (!text || !correctAnswer || wrongAnswers.length === 0) {
-    throw new QuestionSubmitError(400, 'Invalid question')
-  }
+  const { text, correctAnswer, answers } = parsed.output
 
   await questionDao.addQuestion({
     text,
-    answers: [correctAnswer, ...wrongAnswers],
+    answers: [correctAnswer, ...answers],
     lastUsedDate: NEVER_USED_DATE,
     status: QuestionStatus.PENDING,
     submittedBy: quizUser.displayName,

@@ -1,19 +1,22 @@
 import { userService } from '@/bo/user.bo'
 import { IS_PRODUCTION, SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from '@/constants/constants'
 import { requireAuth } from '@/firebase/server'
+import { loginSchema } from '@/schemas/auth.schema'
 import { setCsrfCookie, withCsrf } from '@/util/csrf'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import * as v from 'valibot'
 
 const POST_handler = async (request: NextRequest) => {
   try {
     const auth = requireAuth()
-    const body: unknown = await request.json()
-    const idToken = body && typeof body === 'object' && 'idToken' in body && typeof body.idToken === 'string' ? body.idToken : ''
+    const parsed = v.safeParse(loginSchema, await request.json())
 
-    if (!idToken) {
+    if (!parsed.success) {
       return new NextResponse('Invalid id token', { status: 400 })
     }
+
+    const { idToken } = parsed.output
 
     const decoded = await auth.verifyIdToken(idToken)
     const sessionCookie = await auth.createSessionCookie(idToken, {

@@ -10,6 +10,7 @@
     "emulators": "firebase emulators:exec 'npm test'"
   },
   "dependencies": {
+    "@tanstack/react-form": "^1.33.5",
     "cookie": "^1.0.2",
     "dayjs": "^1.11.13",
     "firebase": "^11.10.0",
@@ -17,8 +18,8 @@
     "next": "^15.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.62.0",
     "react-loading-hook": "^1.1.2",
+    "valibot": "^1.4.2",
     "xss": "^1.0.15"
   },
   "devDependencies": {

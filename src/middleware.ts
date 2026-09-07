@@ -4,16 +4,13 @@ import type { NextRequest } from 'next/server'
 import { SESSION_COOKIE } from '@/constants/constants'
 
 export const middleware = async (request: NextRequest) => {
-  // Presence-only: middleware runs on the Edge runtime and cannot verify Firebase session cookies.
+  // Presence-only: Edge cannot verify Firebase session cookies. Pages use
+  // requirePageSession / getSession so an expired cookie cannot bounce /sign-in back to /.
   const { pathname } = request.nextUrl
   const cookieStore = await cookies()
 
-  if (!cookieStore.has(SESSION_COOKIE)) {
-    if (pathname !== '/sign-in') {
-      return NextResponse.redirect(new URL('/sign-in', request.url))
-    }
-  } else if (pathname === '/sign-in') {
-    return NextResponse.redirect(new URL('/', request.url))
+  if (!cookieStore.has(SESSION_COOKIE) && pathname !== '/sign-in') {
+    return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 }
 
