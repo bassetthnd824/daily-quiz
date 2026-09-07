@@ -26,6 +26,7 @@ const eslintConfig = defineConfig([
     'next-env.d.ts',
     'src/firebase/functions/lib/**',
     'src/firebase/functions/node_modules/**',
+    'src/test/server-only.ts',
   ]),
 ])
 
