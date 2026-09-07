@@ -6,6 +6,7 @@ import classes from './layout.module.scss'
 import UserContextProvider from '@/context/user-context'
 import './ui/globals.scss'
 import BackdropContextProvider from '@/context/backdrop-context'
+import ThemeContextProvider from '@/context/theme-context'
 
 export type LayoutProps = {
   children: ReactNode
@@ -17,13 +18,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <body>
         <div className={classes.pageWrapper}>
           <UserContextProvider>
-            <BackdropContextProvider>
-              <HeaderComponent />
-              <main className={classes.main}>
-                <div className={classes.mainWrapper}>{children}</div>
-              </main>
-              <FooterComponent />
-            </BackdropContextProvider>
+            <ThemeContextProvider>
+              <BackdropContextProvider>
+                <HeaderComponent />
+                <main className={classes.main}>
+                  <div className={classes.mainWrapper}>{children}</div>
+                </main>
+                <FooterComponent />
+              </BackdropContextProvider>
+            </ThemeContextProvider>
           </UserContextProvider>
         </div>
         <Script src="https://kit.fontawesome.com/707065c5c5.js" crossOrigin="anonymous" strategy="lazyOnload" />
