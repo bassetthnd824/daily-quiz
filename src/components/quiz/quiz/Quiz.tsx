@@ -7,13 +7,17 @@ import Summary from '@/components/quiz/summary/Summary'
 import { SubmittedAnswer } from '@/models/user-answer.model'
 import { QuizView } from '@/models/quiz.model'
 import NoQuiz from '@/components/quiz/no-quiz/NoQuiz'
+import Countdown from '@/components/quiz/countdown/Countdown'
+import { QUIZ_COUNTDOWN_TIME } from '@/constants/constants'
 
 export type QuizProps = {
   quiz: QuizView
+  countdown?: boolean
 }
 
-const Quiz = ({ quiz }: QuizProps) => {
+const Quiz = ({ quiz, countdown = false }: QuizProps) => {
   const [userAnswers, setUserAnswers] = useState<SubmittedAnswer[]>([])
+  const [countdownComplete, setCountdownComplete] = useState(!countdown)
 
   const activeQuestionIndex = userAnswers.length
   const currentQuestion = quiz.questions[activeQuestionIndex]
@@ -34,12 +38,24 @@ const Quiz = ({ quiz }: QuizProps) => {
     handleSelectAnswer({ questionId: currentQuestion.id, answer: '', timeToAnswer: 0 })
   }, [currentQuestion, handleSelectAnswer])
 
+  const handleCountdownComplete = useCallback(() => {
+    setCountdownComplete(true)
+  }, [])
+
   if (noQuiz) {
     return <NoQuiz />
   }
 
   if (quizIsComplete) {
     return <Summary date={quiz.date} userAnswers={userAnswers} prevSummary={quiz.summary} />
+  }
+
+  if (!countdownComplete) {
+    return (
+      <div className={classes.quiz}>
+        <Countdown duration={QUIZ_COUNTDOWN_TIME} onComplete={handleCountdownComplete} />
+      </div>
+    )
   }
 
   if (!currentQuestion) {

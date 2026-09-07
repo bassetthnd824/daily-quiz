@@ -10,6 +10,7 @@ export const REUSE_QUESTION_AFTER_DAYS = 30
 export const MAX_DAILY_QUESTIONS = 10
 export const MAX_POINTS = 10
 
+export const QUIZ_COUNTDOWN_TIME = 10000
 export const QUESTION_TIME = 20000
 export const SELECTED_TIME = 1000
 export const CORRECT_TIME = 2000

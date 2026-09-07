@@ -1,0 +1,36 @@
+.countdown {
+  text-align: center;
+}
+
+.countdown h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.message {
+  margin-bottom: 1rem;
+}
+
+.seconds {
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+  color: var(--primary);
+}
+
+.unit {
+  margin-bottom: 1.5rem;
+}
+
+.progress {
+  width: 100%;
+
+  &::-webkit-progress-bar {
+    background: var(--primary);
+  }
+
+  &::-webkit-progress-value {
+    background: var(--white);
+  }
+}
