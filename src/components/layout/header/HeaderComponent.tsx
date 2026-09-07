@@ -5,41 +5,38 @@ import classes from './HeaderComponent.module.scss'
 import { useAuth } from '@/context/user-context'
 import UserPhotoMenu from '@/components/ui-elements/UserPhotoMenu/UserPhotoMenu'
 import { useBackdrop } from '@/context/backdrop-context'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { HeaderMenu } from '../header-menu/HeaderMenu'
 import UserPhoto from '@/components/ui-elements/UserPhoto/UserPhoto'
 
 const HeaderComponent = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false)
+  const [wantNavMenu, setWantNavMenu] = useState(false)
+  const [wantUserMenu, setWantUserMenu] = useState(false)
   const { currentUser } = useAuth()
   const { isOpen, open, close } = useBackdrop()
-
-  useEffect(() => {
-    if (!isOpen) {
-      setIsMenuOpen(false)
-      setIsUserMenuOpen(false)
-    }
-  }, [isOpen])
+  const isMenuOpen = wantNavMenu && isOpen
+  const isUserMenuOpen = wantUserMenu && isOpen
 
   const onOpenMenu = () => {
-    setIsMenuOpen(true)
+    setWantNavMenu(true)
+    setWantUserMenu(false)
     open()
   }
 
   const onCloseMenu = () => {
-    setIsMenuOpen(false)
+    setWantNavMenu(false)
     close()
   }
 
   const onToggleUserMenu = () => {
     if (isUserMenuOpen) {
+      setWantUserMenu(false)
       close()
     } else {
+      setWantUserMenu(true)
+      setWantNavMenu(false)
       open()
     }
-
-    setIsUserMenuOpen((isUserMenuOpen) => !isUserMenuOpen)
   }
 
   return (
@@ -68,7 +65,7 @@ const HeaderComponent = () => {
           </div>
         </div>
       </header>
-      {currentUser && isUserMenuOpen && <UserPhotoMenu isOpen={isUserMenuOpen} open={onToggleUserMenu} close={onToggleUserMenu} />}
+      {currentUser && isUserMenuOpen && <UserPhotoMenu open={onToggleUserMenu} close={onToggleUserMenu} />}
     </>
   )
 }
