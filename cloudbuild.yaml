@@ -1,5 +1,14 @@
 steps:
-  # Step 1: Build the Docker image
+  # Step 1: Run unit tests
+  - name: 'node:22'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        npm ci
+        npm test
+
+  # Step 2: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash' 
     args:
@@ -8,33 +17,23 @@ steps:
         docker build -t ${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA} \
         --secret id=CSRF_SECRET,env=CSRF_SECRET \
         --secret id=FIREBASE_SERVICE_ACCOUNT,env=FIREBASE_SERVICE_ACCOUNT \
-        --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,env=NEXT_PUBLIC_FIREBASE_API_KEY \
-        --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,env=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN \
-        --secret id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,env=NEXT_PUBLIC_FIREBASE_PROJECT_ID \
-        --secret id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,env=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET \
-        --secret id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,env=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID \
-        --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,env=NEXT_PUBLIC_FIREBASE_APP_ID \
+        --secret id=FIREBASE_WEB_CONFIG,env=FIREBASE_WEB_CONFIG \
         .
     secretEnv: 
       - 'CSRF_SECRET'
       - 'FIREBASE_SERVICE_ACCOUNT'
-      - 'NEXT_PUBLIC_FIREBASE_API_KEY'
-      - 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'
-      - 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'
-      - 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'
-      - 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'
-      - 'NEXT_PUBLIC_FIREBASE_APP_ID'
+      - 'FIREBASE_WEB_CONFIG'
 
     env:
       - "DOCKER_BUILDKIT=1" # Enable Docker BuildKit
 
-  # Step 2: Push the Docker image to Artifact Registry
+  # Step 3: Push the Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '${_DEPLOY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPOSITORY}/daily-quiz:${COMMIT_SHA}'
 
-  # Step 3: Deploy the image to Cloud Run
+  # Step 4: Deploy the image to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
@@ -54,19 +53,7 @@ availableSecrets:
     env: 'CSRF_SECRET'
   - versionName: projects/daily-quiz-464300/secrets/FIREBASE_SERVICE_ACCOUNT/versions/latest
     env: 'FIREBASE_SERVICE_ACCOUNT'
-  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_API_KEY/versions/latest
-    env: 'NEXT_PUBLIC_FIREBASE_API_KEY'
-  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN/versions/latest
-    env: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'
-  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_PROJECT_ID/versions/latest
-    env: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'
-  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET/versions/latest
-    env: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'
-  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID/versions/latest
-    env: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'
-  - versionName: projects/daily-quiz-464300/secrets/NEXT_PUBLIC_FIREBASE_APP_ID/versions/latest
-    env: 'NEXT_PUBLIC_FIREBASE_APP_ID'
+  - versionName: projects/daily-quiz-464300/secrets/FIREBASE_WEB_CONFIG/versions/latest
+    env: 'FIREBASE_WEB_CONFIG'
 options:
-  logging: CLOUD_LOGGING_ONLY # <--- Add this section
-
-  
+  logging: CLOUD_LOGGING_ONLY
