@@ -36,6 +36,24 @@ const createUserProfile = async ({
   return userProfile
 }
 
+const ensureUserProfile = async ({
+  userId,
+  displayName,
+  photoURL,
+}: {
+  userId: string
+  displayName: string
+  photoURL: string
+}): Promise<UserProfile | undefined> => {
+  const existing = await getUserProfile(userId)
+
+  if (existing) {
+    return existing
+  }
+
+  return createUserProfile({ userId, displayName, photoURL })
+}
+
 const getQuizUser = async (userId: string): Promise<QuizUser | undefined> => {
   const user: UserRecord | undefined = await auth?.getUser(userId)
   const userProfile = await userService.getUserProfile(userId)
@@ -56,5 +74,6 @@ const getQuizUser = async (userId: string): Promise<QuizUser | undefined> => {
 export const userService = {
   getUserProfile,
   createUserProfile,
+  ensureUserProfile,
   getQuizUser,
 }

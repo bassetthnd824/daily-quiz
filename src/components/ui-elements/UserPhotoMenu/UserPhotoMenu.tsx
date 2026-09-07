@@ -24,15 +24,13 @@ const UserPhotoMenu: React.FC<UserPhotoMenuProps> = ({ isOpen, open, close }: Us
     }
   }, [isOpen])
 
-  const handleLogout = () => {
-    logout()
-      .then(() => {
-        router.push('/sign-in')
-        console.log('Logged out')
-      })
-      .catch(() => {
-        console.log('Something went wrong')
-      })
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push('/sign-in')
+    } catch {
+      return
+    }
   }
 
   const toggleMenu = () => {
