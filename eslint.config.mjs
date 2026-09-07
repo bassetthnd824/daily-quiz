@@ -12,6 +12,12 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    ignores: [
+      "src/firebase/functions/lib/**",
+      "src/firebase/functions/node_modules/**",
+    ],
+  },
   ...compat.extends(
     "next/core-web-vitals",
     "eslint:recommended",
@@ -19,6 +25,18 @@ const eslintConfig = [
     "plugin:@typescript-eslint/recommended",
     "prettier",
   ),
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ];
 
 export default eslintConfig;
