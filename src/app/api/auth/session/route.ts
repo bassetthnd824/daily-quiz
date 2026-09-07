@@ -1,45 +1,29 @@
 import { userService } from '@/bo/user.bo'
-import { CSRF_TOKEN_NAME, IS_PRODUCTION, ONE_HOUR } from '@/constants/constants'
-import { auth, SESSION_COOKIE } from '@/firebase/server'
-import { QuizUser } from '@/models/user-profile.model'
+import { CSRF_MAX_AGE_SECONDS, CSRF_TOKEN_NAME, IS_PRODUCTION } from '@/constants/constants'
 import { generateCsrfToken } from '@/util/csrf-tokens'
-import { DecodedIdToken } from 'firebase-admin/auth'
+import { requireSession } from '@/util/require-session'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export const GET = async () => {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get(SESSION_COOKIE)
-  let quizUser: QuizUser | undefined = undefined
-  let idToken: DecodedIdToken | undefined
-
-  if (!sessionCookie) {
-    return new NextResponse(undefined, { status: 404 })
-  }
-
   try {
-    idToken = await auth?.verifySessionCookie(sessionCookie.value, true)
-  } catch (error) {
-    console.log(error)
-    cookieStore.delete(SESSION_COOKIE)
-    return new NextResponse('Session Invalid', { status: 403 })
-  }
+    const session = await requireSession()
 
-  try {
-    if (!idToken) {
-      return new NextResponse(undefined, { status: 404 })
+    if (!session.ok) {
+      return session.response
     }
 
-    quizUser = await userService.getQuizUser(idToken?.uid)
+    const quizUser = await userService.getQuizUser(session.uid)
 
     if (!quizUser) {
-      return new NextResponse(undefined, { status: 404 })
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
+    const cookieStore = await cookies()
     cookieStore.set(CSRF_TOKEN_NAME, generateCsrfToken(), {
       path: '/',
       httpOnly: false,
-      maxAge: ONE_HOUR,
+      maxAge: CSRF_MAX_AGE_SECONDS,
       sameSite: 'strict',
       secure: IS_PRODUCTION,
     })

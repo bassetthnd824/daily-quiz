@@ -1,6 +1,6 @@
 import { userService } from '@/bo/user.bo'
-import { CSRF_TOKEN_NAME, IS_PRODUCTION, ONE_HOUR, TWO_WEEKS } from '@/constants/constants'
-import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
+import { CSRF_MAX_AGE_SECONDS, CSRF_TOKEN_NAME, IS_PRODUCTION, SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from '@/constants/constants'
+import { auth, firestore } from '@/firebase/server'
 import { generateCsrfToken } from '@/util/csrf-tokens'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
@@ -19,14 +19,14 @@ export const POST = async (request: NextRequest) => {
     } = await request.json()
 
     const cookieStore = await cookies()
-    const sessionCookie = await auth?.createSessionCookie(postBody.idToken, {
-      expiresIn: TWO_WEEKS,
+    const sessionCookie = await auth.createSessionCookie(postBody.idToken, {
+      expiresIn: SESSION_MAX_AGE_SECONDS * 1000,
     })
 
     cookieStore.set(SESSION_COOKIE, sessionCookie, {
       path: '/',
       httpOnly: true,
-      maxAge: TWO_WEEKS,
+      maxAge: SESSION_MAX_AGE_SECONDS,
       sameSite: 'strict',
       secure: IS_PRODUCTION,
     })
@@ -34,7 +34,7 @@ export const POST = async (request: NextRequest) => {
     cookieStore.set(CSRF_TOKEN_NAME, generateCsrfToken(), {
       path: '/',
       httpOnly: false,
-      maxAge: ONE_HOUR,
+      maxAge: CSRF_MAX_AGE_SECONDS,
       sameSite: 'strict',
       secure: IS_PRODUCTION,
     })

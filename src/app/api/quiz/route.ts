@@ -1,14 +1,14 @@
 import { quizService } from '@/bo/quiz.bo'
-import { firestore, SESSION_COOKIE } from '@/firebase/server'
-import { cookies } from 'next/headers'
+import { firestore } from '@/firebase/server'
+import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async (request: NextRequest) => {
   try {
-    const cookieStore = await cookies()
+    const session = await requireSession()
 
-    if (!cookieStore.has(SESSION_COOKIE)) {
-      return new NextResponse('Forbidden', { status: 403 })
+    if (!session.ok) {
+      return session.response
     }
 
     if (!firestore) {

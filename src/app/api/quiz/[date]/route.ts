@@ -1,16 +1,16 @@
 import { quizService } from '@/bo/quiz.bo'
 import { userService } from '@/bo/user.bo'
-import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
+import { firestore } from '@/firebase/server'
 import { withCsrf } from '@/util/csrf-tokens'
-import { cookies } from 'next/headers'
+import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async (request: NextRequest, { params }: { params: Promise<{ date: string }> }) => {
   try {
-    const cookieStore = await cookies()
+    const session = await requireSession()
 
-    if (!cookieStore.has(SESSION_COOKIE)) {
-      return new NextResponse('Forbidden', { status: 403 })
+    if (!session.ok) {
+      return session.response
     }
 
     if (!firestore) {
@@ -27,28 +27,25 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
 
 const PATCH_handler = async (request: NextRequest, { params }: { params: Promise<{ date: string }> }) => {
   try {
-    const cookieStore = await cookies()
+    const session = await requireSession()
 
-    if (!cookieStore.has(SESSION_COOKIE)) {
-      return new NextResponse('Forbidden', { status: 403 })
+    if (!session.ok) {
+      return session.response
     }
 
-    if (!firestore || !auth) {
-      return new NextResponse('Internal Error: no firestore or no auth', { status: 500 })
+    if (!firestore) {
+      return new NextResponse('Internal Error: no firestore', { status: 500 })
     }
 
     const { date } = await params
-    const sessionCookie = cookieStore.get(SESSION_COOKIE)
+    const userQuizEntry = await request.json()
+    const quizUser = await userService.getQuizUser(session.uid)
 
-    if (!sessionCookie) {
-      return new NextResponse('Forbidden', { status: 403 })
+    if (!quizUser) {
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const { uid } = await auth.verifySessionCookie(sessionCookie.value, true)
-    const userQuizEntry = await request.json()
-    const quizUser = await userService.getQuizUser(uid)
-
-    return NextResponse.json(await quizService.getQuizResults(date, quizUser!, userQuizEntry))
+    return NextResponse.json(await quizService.getQuizResults(date, quizUser, userQuizEntry))
   } catch (error) {
     console.log(error)
     return new NextResponse('Internal Error', { status: 500 })
