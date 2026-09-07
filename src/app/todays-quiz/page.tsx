@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 const TodaysQuiz = async () => {
   const uid = await requirePageSession()
   const quiz = await quizService.ensureTodaysQuiz(uid)
-  return <Quiz quiz={quiz} />
+  return <Quiz quiz={quiz} countdown />
 }
 
 export default TodaysQuiz
