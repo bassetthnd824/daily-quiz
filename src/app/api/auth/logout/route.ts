@@ -1,10 +1,14 @@
-import { SESSION_COOKIE } from '@/firebase/server'
+import { SESSION_COOKIE } from '@/constants/constants'
+import { clearCsrfCookie, withCsrf } from '@/util/csrf'
 import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async () => {
+const POST_handler = async (_request: NextRequest) => {
   const cookieStore = await cookies()
-  cookieStore.delete(SESSION_COOKIE)
+  cookieStore.delete({ name: SESSION_COOKIE, path: '/' })
+  await clearCsrfCookie()
 
   return new NextResponse(undefined, { status: 200 })
 }
+
+export const POST = withCsrf(POST_handler)

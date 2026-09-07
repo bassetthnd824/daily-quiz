@@ -1,45 +1,39 @@
 'use client'
 
-import { Question } from '@/models/question.model'
 import classes from './Summary.module.scss'
-import { UserAnswer } from '@/models/user-answer.model'
-import { useEffect, useState } from 'react'
-import { getCurrentDate } from '@/util/utility'
+import { SubmittedAnswer } from '@/models/user-answer.model'
+import { Fragment, useEffect, useState } from 'react'
 import { QuizSummary } from '@/models/quiz-summary.model'
-import { CSRF_TOKEN_NAME } from '@/constants/constants'
-import { getCookie } from '@/util/csrf-tokens'
+import { csrfHeaders } from '@/util/get-cookie'
 
 export type SummaryProps = {
-  userAnswers: UserAnswer[]
-  questions: Question[]
+  date: string
+  userAnswers: SubmittedAnswer[]
   prevSummary?: QuizSummary
 }
 
-const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
+const Summary = ({ date, userAnswers, prevSummary }: SummaryProps) => {
   const [loading, setLoading] = useState(true)
   const [quizSummary, setQuizSummary] = useState<QuizSummary>()
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    const patchQuiz = async () => {
+    const submitQuiz = async () => {
       try {
-        const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
-
-        const quizPatchResponse = await fetch(`/api/quiz/${getCurrentDate()}`, {
+        const quizPatchResponse = await fetch(`/api/quiz/${date}`, {
           method: 'PATCH',
           headers: {
-            [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
             'Content-Type': 'application/json',
             Accept: 'application/json',
+            ...csrfHeaders(),
           },
           body: JSON.stringify({
-            userAnswers,
-            questions,
+            answers: userAnswers,
           }),
         })
 
         if (!quizPatchResponse.ok) {
-          throw new Error('Failed to patch quiz')
+          throw new Error('Failed to submit quiz')
         }
 
         const data = await quizPatchResponse.json()
@@ -52,12 +46,12 @@ const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
     }
 
     if (!prevSummary) {
-      patchQuiz()
+      submitQuiz()
     } else {
       setQuizSummary(prevSummary)
       setLoading(false)
     }
-  }, [questions, userAnswers, prevSummary])
+  }, [date, userAnswers, prevSummary])
 
   if (loading) {
     return <div>Loading...</div>
@@ -86,20 +80,18 @@ const Summary = ({ userAnswers, questions, prevSummary }: SummaryProps) => {
         </p>
       </div>
       <div className={classes.answerGrid}>
-        {quizSummary?.answers.map((answer, index) => {
-          return (
-            <>
-              <div className={classes.answerNumber} key={`${index}-number`}>
-                <p>{index + 1}</p>
-              </div>
-              <div className={classes.answerQuestion} key={`${index}-question`}>
-                <p className={classes.question}>Q: {answer?.questionText}</p>
-                <p className={`${classes.userAnswer} ${answer?.status ? classes[answer.status] : ''}`}>A: {answer.answer || 'Skipped'}</p>
-                <p className={classes.question}>Score: {answer.bonus}</p>
-              </div>
-            </>
-          )
-        })}
+        {quizSummary?.answers.map((answer, index) => (
+          <Fragment key={answer.questionId ?? index}>
+            <div className={classes.answerNumber}>
+              <p>{index + 1}</p>
+            </div>
+            <div className={classes.answerQuestion}>
+              <p className={classes.question}>Q: {answer?.questionText}</p>
+              <p className={`${classes.userAnswer} ${answer?.status ? classes[answer.status] : ''}`}>A: {answer.answer || 'Skipped'}</p>
+              <p className={classes.question}>Score: {answer.bonus}</p>
+            </div>
+          </Fragment>
+        ))}
       </div>
     </div>
   )

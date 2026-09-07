@@ -1,53 +1,57 @@
 import { userService } from '@/bo/user.bo'
-import { CSRF_TOKEN_NAME, IS_PRODUCTION, ONE_HOUR, TWO_WEEKS } from '@/constants/constants'
-import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
-import { generateCsrfToken } from '@/util/csrf-tokens'
+import { IS_PRODUCTION, SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from '@/constants/constants'
+import { requireAuth } from '@/firebase/server'
+import { setCsrfCookie, withCsrf } from '@/util/csrf'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const POST = async (request: NextRequest) => {
+const POST_handler = async (request: NextRequest) => {
   try {
-    if (!firestore || !auth) {
-      return new NextResponse('Internal Error: no firestore or no auth', { status: 500 })
+    const auth = requireAuth()
+    const body: unknown = await request.json()
+    const idToken = body && typeof body === 'object' && 'idToken' in body && typeof body.idToken === 'string' ? body.idToken : ''
+
+    if (!idToken) {
+      return new NextResponse('Invalid id token', { status: 400 })
     }
 
-    const postBody: {
-      idToken: string
-      userId: string
-      displayName: string
-      photoURL: string
-    } = await request.json()
-
-    const cookieStore = await cookies()
-    const sessionCookie = await auth?.createSessionCookie(postBody.idToken, {
-      expiresIn: TWO_WEEKS,
+    const decoded = await auth.verifyIdToken(idToken)
+    const sessionCookie = await auth.createSessionCookie(idToken, {
+      expiresIn: SESSION_MAX_AGE_SECONDS * 1000,
     })
 
+    const cookieStore = await cookies()
     cookieStore.set(SESSION_COOKIE, sessionCookie, {
       path: '/',
       httpOnly: true,
-      maxAge: TWO_WEEKS,
+      maxAge: SESSION_MAX_AGE_SECONDS,
       sameSite: 'strict',
       secure: IS_PRODUCTION,
     })
 
-    cookieStore.set(CSRF_TOKEN_NAME, generateCsrfToken(), {
-      path: '/',
-      httpOnly: false,
-      maxAge: ONE_HOUR,
-      sameSite: 'strict',
-      secure: IS_PRODUCTION,
+    await setCsrfCookie()
+
+    const userProfile = await userService.ensureUserProfile({
+      userId: decoded.uid,
+      displayName: decoded.name ?? '',
+      photoURL: decoded.picture ?? '',
     })
 
-    const userProfile = await userService.getUserProfile(postBody.userId)
-
-    if (userProfile) {
-      return NextResponse.json(userProfile)
-    } else {
-      return NextResponse.json(await userService.createUserProfile(postBody))
+    if (!userProfile) {
+      return new NextResponse('Internal Error', { status: 500 })
     }
+
+    const quizUser = await userService.getQuizUser(decoded.uid)
+
+    if (!quizUser) {
+      return new NextResponse('Internal Error', { status: 500 })
+    }
+
+    return NextResponse.json(quizUser)
   } catch (error) {
     console.log(error)
     return new NextResponse('Internal Error', { status: 500 })
   }
 }
+
+export const POST = withCsrf(POST_handler)

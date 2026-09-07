@@ -3,7 +3,6 @@ import { cert, getApps, ServiceAccount } from 'firebase-admin/app'
 import { Firestore, getFirestore } from 'firebase-admin/firestore'
 import { Auth, getAuth } from 'firebase-admin/auth'
 
-const SESSION_COOKIE = 'daily-quiz-session'
 const currentApps = getApps()
 const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT
 const serviceAccount = JSON.parse(serviceAccountJson ? serviceAccountJson : '{}')
@@ -27,4 +26,20 @@ if (currentApps.length <= 0) {
   auth = getAuth(currentApps[0])
 }
 
-export { firestore, auth, SESSION_COOKIE }
+export const requireFirestore = (): Firestore => {
+  if (!firestore) {
+    throw new Error('Firestore is not initialized')
+  }
+
+  return firestore
+}
+
+export const requireAuth = (): Auth => {
+  if (!auth) {
+    throw new Error('Auth is not initialized')
+  }
+
+  return auth
+}
+
+export { firestore, auth }

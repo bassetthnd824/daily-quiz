@@ -1,5 +1,5 @@
 import classes from '@/components/quiz/answers/Answers.module.scss'
-import { AnswerState } from '@/components/quiz/quiz/Quiz'
+import { AnswerState } from '@/components/quiz/answer-state'
 import { shuffleArray } from '@/util/utility'
 import { useRef } from 'react'
 

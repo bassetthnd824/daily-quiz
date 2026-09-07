@@ -1,76 +1,108 @@
 import 'server-only'
-import { QuizzesParams } from '@/bo/quiz.bo'
-import { firestore } from '@/firebase/server'
+import { requireFirestore } from '@/firebase/server'
+import { LeaderboardEntry } from '@/models/leaderboard-entry.model'
+import { DateRange, Quiz } from '@/models/quiz.model'
 import { QuizSummary } from '@/models/quiz-summary.model'
-import { Quiz } from '@/models/quiz.model'
+import { FieldValue, Transaction } from 'firebase-admin/firestore'
 
 const QUIZZES = 'quizzes'
+const LEADERBOARD = 'leaderboard'
 
-const getQuizForDate = async (transaction: FirebaseFirestore.Transaction, date: string): Promise<Quiz | undefined> => {
-  if (!firestore) {
+const toQuiz = (docData: FirebaseFirestore.DocumentData | undefined): Quiz | undefined => {
+  if (!docData) {
     return undefined
   }
 
-  const docRef = await transaction.get(firestore.doc(`${QUIZZES}/${date}`))
+  return {
+    date: docData.date,
+    questions: [...(docData.questions ?? [])],
+    summaries: { ...(docData.summaries ?? {}) },
+  }
+}
 
-  let quiz: Quiz | undefined = undefined
+const quizRef = (date: string) => requireFirestore().doc(`${QUIZZES}/${date}`)
 
-  if (docRef) {
-    const docData = docRef.data()
+const leaderboardEntryRef = (yearMonth: string, userId: string) =>
+  requireFirestore().doc(`${LEADERBOARD}/${yearMonth}/entries/${userId}`)
 
-    if (docData) {
-      quiz = {
-        date: docData.date,
-        questions: [...docData.questions],
-        summaries: { ...docData.summaries },
-      }
+const getQuiz = async (date: string): Promise<Quiz | undefined> => {
+  const snapshot = await quizRef(date).get()
+
+  if (!snapshot.exists) {
+    return undefined
+  }
+
+  return toQuiz(snapshot.data())
+}
+
+const getQuizInTransaction = async (transaction: Transaction, date: string): Promise<Quiz | undefined> => {
+  const snapshot = await transaction.get(quizRef(date))
+
+  if (!snapshot.exists) {
+    return undefined
+  }
+
+  return toQuiz(snapshot.data())
+}
+
+const listQuizSummaries = async ({ begDate, endDate }: DateRange): Promise<{ date: string; summaries: Record<string, QuizSummary> }[]> => {
+  const results = await requireFirestore()
+    .collection(QUIZZES)
+    .where('date', '>=', begDate)
+    .where('date', '<=', endDate)
+    .select('date', 'summaries')
+    .get()
+
+  return results.docs.map((doc) => {
+    const docData = doc.data()
+    return {
+      date: docData.date,
+      summaries: { ...(docData.summaries ?? {}) },
     }
-  }
-
-  return quiz
+  })
 }
 
-const getQuizzes = async (transaction: FirebaseFirestore.Transaction, { begDate, endDate }: QuizzesParams): Promise<Quiz[]> => {
-  if (!firestore) {
-    return []
-  }
-
-  const results = await transaction.get(firestore.collection(QUIZZES).where('date', '>=', begDate).where('date', '<=', endDate))
-  let quizzes: Quiz[] = []
-
-  if (results) {
-    quizzes = results.docs.map((doc) => {
-      const docData = doc.data()
-      return {
-        date: docData.date,
-        questions: [...docData.questions],
-        summaries: { ...docData.summaries },
-      }
-    })
-  }
-
-  return quizzes
+const createQuiz = (transaction: Transaction, quiz: Quiz) => {
+  transaction.create(quizRef(quiz.date), { ...quiz })
 }
 
-const addQuiz = (transaction: FirebaseFirestore.Transaction, quiz: Quiz) => {
-  if (!firestore) {
-    return
-  }
-
-  transaction.create(firestore?.doc(`${QUIZZES}/${quiz.date}`), { ...quiz })
+const setQuizSummary = (transaction: Transaction, date: string, userId: string, quizSummary: QuizSummary) => {
+  transaction.set(quizRef(date), { summaries: { [userId]: quizSummary } }, { mergeFields: [`summaries.${userId}`] })
 }
 
-const addQuizSummary = (transaction: FirebaseFirestore.Transaction, date: string, userId: string, quizSummary: QuizSummary) => {
-  if (!firestore) {
-    return
-  }
+const incrementLeaderboard = (transaction: Transaction, yearMonth: string, entry: LeaderboardEntry) => {
+  transaction.set(
+    leaderboardEntryRef(yearMonth, entry.userId),
+    {
+      userId: entry.userId,
+      displayName: entry.displayName,
+      photoURL: entry.photoURL,
+      totalScore: FieldValue.increment(entry.totalScore),
+    },
+    { merge: true }
+  )
+}
 
-  transaction.set(firestore?.doc(`${QUIZZES}/${date}`), { summaries: { [userId]: quizSummary } }, { mergeFields: [`summaries.${userId}`] })
+const listLeaderboard = async (yearMonth: string): Promise<LeaderboardEntry[]> => {
+  const results = await requireFirestore().collection(`${LEADERBOARD}/${yearMonth}/entries`).orderBy('totalScore', 'desc').get()
+
+  return results.docs.map((doc) => {
+    const docData = doc.data()
+    return {
+      userId: doc.id,
+      displayName: docData.displayName,
+      photoURL: docData.photoURL,
+      totalScore: docData.totalScore,
+    }
+  })
 }
 
 export const quizDao = {
-  getQuizForDate,
-  getQuizzes,
-  addQuiz,
-  addQuizSummary,
+  getQuiz,
+  getQuizInTransaction,
+  listQuizSummaries,
+  createQuiz,
+  setQuizSummary,
+  incrementLeaderboard,
+  listLeaderboard,
 }

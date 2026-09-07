@@ -4,47 +4,53 @@ import { useCallback, useState } from 'react'
 import classes from './Quiz.module.scss'
 import QuestionComponent from '@/components/quiz/question/Question'
 import Summary from '@/components/quiz/summary/Summary'
-import { UserAnswer } from '@/models/user-answer.model'
-import { Quiz as QuizModel } from '@/models/quiz.model'
-import { useAuth } from '@/context/user-context'
+import { SubmittedAnswer } from '@/models/user-answer.model'
+import { QuizView } from '@/models/quiz.model'
 import NoQuiz from '@/components/quiz/no-quiz/NoQuiz'
 
 export type QuizProps = {
-  quiz: QuizModel
+  quiz: QuizView
 }
 
-export type AnswerState = '' | 'answered' | 'correct' | 'wrong'
-
 const Quiz = ({ quiz }: QuizProps) => {
-  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([])
-  const { currentUser } = useAuth()
+  const [userAnswers, setUserAnswers] = useState<SubmittedAnswer[]>([])
 
   const activeQuestionIndex = userAnswers.length
-  const uid = currentUser?.uid
-  const noQuiz = quiz.questions.length === 0 && !quiz.summaries?.[uid!]
-  const quizIsComplete = quiz.summaries?.[uid!] || activeQuestionIndex === quiz.questions.length
+  const currentQuestion = quiz.questions[activeQuestionIndex]
+  const noQuiz = quiz.questions.length === 0 && !quiz.summary
+  const quizIsComplete = Boolean(quiz.summary) || (quiz.questions.length > 0 && activeQuestionIndex === quiz.questions.length)
 
-  const handleSelectAnswer = useCallback((selectedAnswer: UserAnswer) => {
+  const handleSelectAnswer = useCallback((selectedAnswer: SubmittedAnswer) => {
     setUserAnswers((prevUserAnswers) => {
       return [...prevUserAnswers, selectedAnswer]
     })
   }, [])
 
-  const handleSkipAnswer = useCallback(() => handleSelectAnswer({ answer: '', timeToAnswer: 0 }), [handleSelectAnswer])
+  const handleSkipAnswer = useCallback(() => {
+    if (!currentQuestion) {
+      return
+    }
+
+    handleSelectAnswer({ questionId: currentQuestion.id, answer: '', timeToAnswer: 0 })
+  }, [currentQuestion, handleSelectAnswer])
 
   if (noQuiz) {
     return <NoQuiz />
   }
 
   if (quizIsComplete) {
-    return <Summary userAnswers={userAnswers} questions={quiz.questions} prevSummary={quiz.summaries?.[uid!]} />
+    return <Summary date={quiz.date} userAnswers={userAnswers} prevSummary={quiz.summary} />
+  }
+
+  if (!currentQuestion) {
+    return null
   }
 
   return (
     <div className={classes.quiz}>
       <QuestionComponent
         key={activeQuestionIndex}
-        question={quiz.questions.length > 0 ? quiz.questions[activeQuestionIndex] : undefined}
+        question={currentQuestion}
         onSelectAnswer={handleSelectAnswer}
         onSkipAnswer={handleSkipAnswer}
       />

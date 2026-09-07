@@ -1,9 +1,8 @@
 'use client'
 
-import { CSRF_TOKEN_NAME } from '@/constants/constants'
 import { auth } from '@/firebase/client'
-import { QuizUser, UserProfile } from '@/models/user-profile.model'
-import { getCookie } from '@/util/csrf-tokens'
+import { QuizUser } from '@/models/user-profile.model'
+import { csrfHeaders } from '@/util/get-cookie'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
@@ -22,140 +21,79 @@ export const UserContext = createContext<UserContextValue>({
 
 const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<QuizUser | null>(null)
-  const [sessionChecked, setSessionChecked] = useState<boolean>(false)
+  const [sessionChecked, setSessionChecked] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    const getUserSession = async () => {
-      if (currentUser) {
-        setSessionChecked(true)
-        return
-      }
-
-      const response = await fetch('/api/auth/session')
-
-      if (!response.ok) {
-        setSessionChecked(true)
-        router.push('/sign-in')
-        return
-      }
-
-      const user: QuizUser | undefined = await response.json()
-
-      if (user) {
-        setCurrentUser(user)
-      }
-
-      setSessionChecked(true)
-    }
-
-    if (!sessionChecked) {
-      getUserSession()
-    }
-  }, [currentUser, router, sessionChecked])
-
-  useEffect(() => {
-    if (!auth) {
+    if (sessionChecked) {
       return
     }
 
-    return auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        setCurrentUser(null)
-        return
-      }
+    const restoreSession = async () => {
+      const response = await fetch('/api/auth/session')
 
-      let userProfile: UserProfile
-      const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
-
-      const userResponse = await fetch(`/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          idToken: await user.getIdToken(),
-          userId: user.uid,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-        }),
-      })
-
-      if (userResponse.ok) {
-        const userJson = await userResponse.json()
-        if (userJson) {
-          userProfile = {
-            ...userJson,
-          }
-
-          setCurrentUser({
-            uid: user.uid,
-            email: user.email ? user.email : undefined,
-            emailVerified: user.emailVerified,
-            phoneNumber: user.phoneNumber ? user.phoneNumber : undefined,
-            ...userProfile,
-          })
-        } else {
-          console.error('Could not get user profile')
+      if (!response.ok) {
+        if (window.location.pathname !== '/sign-in') {
+          router.push('/sign-in')
         }
-      } else {
-        console.error('Could not get user profile')
-      }
-    })
-  }, [])
 
-  const loginGoogle = () => {
-    return new Promise<void>((resolve, reject) => {
-      if (!auth) {
-        reject()
+        setSessionChecked(true)
         return
       }
 
-      signInWithPopup(auth, new GoogleAuthProvider())
-        .then(() => {
-          console.log('Signed In')
-          resolve()
-        })
-        .catch(() => {
-          console.error('Something went wrong')
-          reject()
-        })
+      const user: QuizUser = await response.json()
+      setCurrentUser(user)
+      setSessionChecked(true)
+    }
+
+    restoreSession()
+  }, [router, sessionChecked])
+
+  const loginGoogle = async () => {
+    if (!auth) {
+      throw new Error('Auth is not available')
+    }
+
+    const credential = await signInWithPopup(auth, new GoogleAuthProvider())
+    const idToken = await credential.user.getIdToken()
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...csrfHeaders(),
+      },
+      body: JSON.stringify({ idToken }),
     })
+
+    if (!response.ok) {
+      throw new Error('Login failed')
+    }
+
+    const user: QuizUser = await response.json()
+    setCurrentUser(user)
+    setSessionChecked(true)
   }
 
-  const logout = () => {
-    return new Promise<void>((resolve, reject) => {
-      if (!auth) {
-        reject()
-        return
-      }
-
-      fetch('/api/auth/logout')
-        .then((response) => {
-          if (response.ok) {
-            setCurrentUser(null)
-
-            auth
-              ?.signOut()
-              .then(() => {
-                console.log('Signed out')
-                resolve()
-              })
-              .catch(() => {
-                resolve()
-              })
-          } else {
-            console.log('Something went wrong')
-            reject()
-          }
-        })
-        .catch(() => {
-          console.error('Something went wrong')
-          reject()
-        })
+  const logout = async () => {
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: csrfHeaders(),
     })
+
+    if (!response.ok) {
+      throw new Error('Logout failed')
+    }
+
+    setCurrentUser(null)
+
+    if (auth) {
+      try {
+        await auth.signOut()
+      } catch {
+        // in-memory Firebase auth may already be empty
+      }
+    }
   }
 
   return (

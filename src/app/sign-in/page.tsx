@@ -3,24 +3,25 @@
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/user-context'
 import classes from './page.module.scss'
+import { useEffect } from 'react'
 
 const SignInComponent = () => {
   const router = useRouter()
   const { currentUser, loginGoogle } = useAuth()
 
-  if (currentUser) {
-    router.push('/')
-  }
+  useEffect(() => {
+    if (currentUser) {
+      router.replace('/')
+    }
+  }, [currentUser, router])
 
-  const handleLogin = () => {
-    loginGoogle()
-      .then(() => {
-        setTimeout(() => router.push('/'), 200)
-        console.log('Logged In')
-      })
-      .catch(() => {
-        console.log('Something went wrong')
-      })
+  const handleLogin = async () => {
+    try {
+      await loginGoogle()
+      router.push('/')
+    } catch {
+      return
+    }
   }
 
   return (

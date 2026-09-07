@@ -1,18 +1,13 @@
 import { quizService } from '@/bo/quiz.bo'
-import { firestore, SESSION_COOKIE } from '@/firebase/server'
-import { cookies } from 'next/headers'
+import { requireSession } from '@/util/require-session'
 import { NextResponse } from 'next/server'
 
 export const GET = async () => {
   try {
-    const cookieStore = await cookies()
+    const session = await requireSession()
 
-    if (!cookieStore.has(SESSION_COOKIE)) {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
-
-    if (!firestore) {
-      return new NextResponse('Internal Error: no firestore', { status: 500 })
+    if (!session.ok) {
+      return session.response
     }
 
     return NextResponse.json(await quizService.getLeaderboard())

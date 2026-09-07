@@ -1,7 +1,6 @@
 'use client'
 
-import { CSRF_TOKEN_NAME } from '@/constants/constants'
-import { getCookie } from '@/util/csrf-tokens'
+import { csrfHeaders } from '@/util/get-cookie'
 import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 
@@ -38,7 +37,6 @@ const SubmitQuestion = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     setIsSubmitting(true)
-    const csrfTokenCookie = getCookie(CSRF_TOKEN_NAME)
     const question = {
       text: data.text,
       correctAnswer: data.correctAnswer,
@@ -48,9 +46,9 @@ const SubmitQuestion = () => {
     const response = await fetch('/api/question', {
       method: 'POST',
       headers: {
-        [CSRF_TOKEN_NAME]: csrfTokenCookie ?? '',
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        ...csrfHeaders(),
       },
       body: JSON.stringify(question),
     })
@@ -77,12 +75,13 @@ const SubmitQuestion = () => {
 
         <label htmlFor="correctAnswer">Correct Answer</label>
         <input {...register('correctAnswer', { required: true })} id="correctAnswer" />
-        {errors.text && <span className="error-text">This field is required</span>}
+        {errors.correctAnswer && <span className="error-text">This field is required</span>}
 
         {answerFields.map((answer, index) => (
           <div key={answer.id}>
             <label htmlFor={`answer-${index}`}>Wrong Answer {index + 1}</label>
             <input {...register(`answers.${index}.value`, { required: true })} id={`answer-${index}`} />
+            {errors.answers?.[index]?.value && <span className="error-text">This field is required</span>}
           </div>
         ))}
 

@@ -1,48 +1,31 @@
-import { questionService } from '@/bo/question.bo'
+import { questionService, QuestionSubmitError } from '@/bo/question.bo'
 import { userService } from '@/bo/user.bo'
-import { auth, firestore, SESSION_COOKIE } from '@/firebase/server'
-import { QuestionStatus } from '@/models/question-status.model'
-import { Question } from '@/models/question.model'
-import { withCsrf } from '@/util/csrf-tokens'
-import { getCurrentDate } from '@/util/utility'
-import { cookies } from 'next/headers'
+import { withCsrf } from '@/util/csrf'
+import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
 
 const POST_handler = async (request: NextRequest) => {
   try {
-    const cookieStore = await cookies()
+    const session = await requireSession()
 
-    if (!cookieStore.has(SESSION_COOKIE)) {
-      return new NextResponse('Forbidden', { status: 403 })
+    if (!session.ok) {
+      return session.response
     }
 
-    if (!firestore || !auth) {
-      return new NextResponse('Internal Error: no firestore or no auth', { status: 500 })
+    const quizUser = await userService.getQuizUser(session.uid)
+
+    if (!quizUser) {
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const sessionCookie = cookieStore.get(SESSION_COOKIE)
-
-    if (!sessionCookie) {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
-
-    const { uid } = await auth.verifySessionCookie(sessionCookie.value, true)
-    const question = await request.json()
-    const quizUser = await userService.getQuizUser(uid)
-
-    const newQuestion: Omit<Question, 'id'> = {
-      text: question.text,
-      answers: [question.correctAnswer, ...question.answers],
-      lastUsedDate: '1111-11-11',
-      status: QuestionStatus.PENDING,
-      submittedBy: quizUser!.displayName,
-      dateSubmitted: getCurrentDate(),
-    }
-
-    await questionService.addQuestion(newQuestion)
+    await questionService.submitQuestion(quizUser, await request.json())
 
     return NextResponse.json('Question Added', { status: 201 })
   } catch (error) {
+    if (error instanceof QuestionSubmitError) {
+      return new NextResponse(error.message, { status: error.status })
+    }
+
     console.log(error)
     return new NextResponse('Internal Error', { status: 500 })
   }
