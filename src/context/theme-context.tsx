@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { createContext, ReactNode, useContext, useEffect, useSyncExternalStore } from 'react'
 
 export const THEMES = [
   { id: 'light', label: 'Light' },
@@ -21,25 +21,47 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
+const THEME_CHANGE_EVENT = 'daily-quiz-theme'
+
+const readTheme = (): Theme => {
+  const stored = localStorage.getItem('theme')
+  if (isTheme(stored)) {
+    return stored
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+const subscribeToTheme = (onStoreChange: () => void) => {
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === 'theme') {
+      onStoreChange()
+    }
+  }
+
+  window.addEventListener(THEME_CHANGE_EVENT, onStoreChange)
+  window.addEventListener('storage', onStorage)
+  mediaQuery.addEventListener('change', onStoreChange)
+
+  return () => {
+    window.removeEventListener(THEME_CHANGE_EVENT, onStoreChange)
+    window.removeEventListener('storage', onStorage)
+    mediaQuery.removeEventListener('change', onStoreChange)
+  }
+}
+
 const ThemeContextProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>('light')
+  const theme = useSyncExternalStore<Theme>(subscribeToTheme, readTheme, (): Theme => 'light')
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme')
-    const initial = isTheme(stored)
-      ? stored
-      : window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-
-    setTheme(initial)
-    document.documentElement.setAttribute('data-theme', initial)
-  }, [])
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
 
   const changeTheme = (next: Theme) => {
-    setTheme(next)
-    document.documentElement.setAttribute('data-theme', next)
     localStorage.setItem('theme', next)
+    document.documentElement.setAttribute('data-theme', next)
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT))
   }
 
   return <ThemeContext.Provider value={{ theme, changeTheme }}>{children}</ThemeContext.Provider>

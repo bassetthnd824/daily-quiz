@@ -1,28 +1,21 @@
 'use client'
 
 import classes from './UserPhotoMenu.module.scss'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/context/user-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import UserPhoto from '@/components/ui-elements/UserPhoto/UserPhoto'
 
 type UserPhotoMenuProps = {
-  isOpen: boolean
   open: () => void
   close: () => void
 }
 
-const UserPhotoMenu: React.FC<UserPhotoMenuProps> = ({ isOpen, open, close }: UserPhotoMenuProps) => {
+const UserPhotoMenu: React.FC<UserPhotoMenuProps> = ({ open, close }: UserPhotoMenuProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { currentUser, logout } = useAuth()
   const router = useRouter()
-
-  useEffect(() => {
-    if (!isOpen) {
-      setIsMenuOpen(false)
-    }
-  }, [isOpen])
 
   const handleLogout = async () => {
     try {

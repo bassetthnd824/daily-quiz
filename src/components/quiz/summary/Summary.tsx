@@ -13,11 +13,15 @@ export type SummaryProps = {
 }
 
 const Summary = ({ date, userAnswers, prevSummary }: SummaryProps) => {
-  const [loading, setLoading] = useState(true)
-  const [quizSummary, setQuizSummary] = useState<QuizSummary>()
+  const [loading, setLoading] = useState(!prevSummary)
+  const [quizSummary, setQuizSummary] = useState<QuizSummary | undefined>(prevSummary)
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
+    if (prevSummary) {
+      return
+    }
+
     const submitQuiz = async () => {
       try {
         const quizPatchResponse = await fetch(`/api/quiz/${date}`, {
@@ -45,12 +49,7 @@ const Summary = ({ date, userAnswers, prevSummary }: SummaryProps) => {
       }
     }
 
-    if (!prevSummary) {
-      submitQuiz()
-    } else {
-      setQuizSummary(prevSummary)
-      setLoading(false)
-    }
+    submitQuiz()
   }, [date, userAnswers, prevSummary])
 
   if (loading) {

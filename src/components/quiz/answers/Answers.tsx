@@ -1,7 +1,7 @@
 import classes from '@/components/quiz/answers/Answers.module.scss'
 import { AnswerState } from '@/components/quiz/answer-state'
 import { shuffleArray } from '@/util/utility'
-import { useRef } from 'react'
+import { useState } from 'react'
 
 export type AnswersProps = {
   answers: string[]
@@ -11,15 +11,11 @@ export type AnswersProps = {
 }
 
 const Answers = ({ answers, selectedAnswer, answerState, onSelect }: AnswersProps) => {
-  const shuffledAnswers = useRef<string[]>(undefined)
-
-  if (!shuffledAnswers.current) {
-    shuffledAnswers.current = shuffleArray(answers)
-  }
+  const [shuffledAnswers] = useState(() => shuffleArray(answers))
 
   return (
     <ul className={classes.answers}>
-      {shuffledAnswers.current.map((answer) => {
+      {shuffledAnswers.map((answer) => {
         const isSelected = selectedAnswer === answer
         let cssClass = ''
 

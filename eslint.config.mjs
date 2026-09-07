@@ -1,42 +1,32 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-import js from "@eslint/js"
+import { defineConfig, globalIgnores } from 'eslint/config'
+import nextVitals from 'eslint-config-next/core-web-vitals'
+import nextTs from 'eslint-config-next/typescript'
+import prettier from 'eslint-config-prettier/flat'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-});
-
-const eslintConfig = [
-  {
-    ignores: [
-      "src/firebase/functions/lib/**",
-      "src/firebase/functions/node_modules/**",
-    ],
-  },
-  ...compat.extends(
-    "next/core-web-vitals",
-    "eslint:recommended",
-    "next/typescript",
-    "plugin:@typescript-eslint/recommended",
-    "prettier",
-  ),
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  prettier,
   {
     rules: {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
+      '@typescript-eslint/no-unused-vars': [
+        'error',
         {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
     },
   },
-];
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
+    'src/firebase/functions/lib/**',
+    'src/firebase/functions/node_modules/**',
+  ]),
+])
 
-export default eslintConfig;
+export default eslintConfig
