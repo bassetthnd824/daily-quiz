@@ -75,12 +75,13 @@ const SubmitQuestion = () => {
 
         <label htmlFor="correctAnswer">Correct Answer</label>
         <input {...register('correctAnswer', { required: true })} id="correctAnswer" />
-        {errors.text && <span className="error-text">This field is required</span>}
+        {errors.correctAnswer && <span className="error-text">This field is required</span>}
 
         {answerFields.map((answer, index) => (
           <div key={answer.id}>
             <label htmlFor={`answer-${index}`}>Wrong Answer {index + 1}</label>
             <input {...register(`answers.${index}.value`, { required: true })} id={`answer-${index}`} />
+            {errors.answers?.[index]?.value && <span className="error-text">This field is required</span>}
           </div>
         ))}
 

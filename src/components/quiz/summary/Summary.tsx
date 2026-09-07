@@ -2,7 +2,7 @@
 
 import classes from './Summary.module.scss'
 import { SubmittedAnswer } from '@/models/user-answer.model'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { QuizSummary } from '@/models/quiz-summary.model'
 import { csrfHeaders } from '@/util/get-cookie'
 
@@ -80,20 +80,18 @@ const Summary = ({ date, userAnswers, prevSummary }: SummaryProps) => {
         </p>
       </div>
       <div className={classes.answerGrid}>
-        {quizSummary?.answers.map((answer, index) => {
-          return (
-            <>
-              <div className={classes.answerNumber} key={`${index}-number`}>
-                <p>{index + 1}</p>
-              </div>
-              <div className={classes.answerQuestion} key={`${index}-question`}>
-                <p className={classes.question}>Q: {answer?.questionText}</p>
-                <p className={`${classes.userAnswer} ${answer?.status ? classes[answer.status] : ''}`}>A: {answer.answer || 'Skipped'}</p>
-                <p className={classes.question}>Score: {answer.bonus}</p>
-              </div>
-            </>
-          )
-        })}
+        {quizSummary?.answers.map((answer, index) => (
+          <Fragment key={answer.questionId ?? index}>
+            <div className={classes.answerNumber}>
+              <p>{index + 1}</p>
+            </div>
+            <div className={classes.answerQuestion}>
+              <p className={classes.question}>Q: {answer?.questionText}</p>
+              <p className={`${classes.userAnswer} ${answer?.status ? classes[answer.status] : ''}`}>A: {answer.answer || 'Skipped'}</p>
+              <p className={classes.question}>Score: {answer.bonus}</p>
+            </div>
+          </Fragment>
+        ))}
       </div>
     </div>
   )

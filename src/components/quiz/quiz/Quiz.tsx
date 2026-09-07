@@ -12,8 +12,6 @@ export type QuizProps = {
   quiz: QuizView
 }
 
-export type AnswerState = '' | 'answered' | 'correct' | 'wrong'
-
 const Quiz = ({ quiz }: QuizProps) => {
   const [userAnswers, setUserAnswers] = useState<SubmittedAnswer[]>([])
 

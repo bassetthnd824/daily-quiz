@@ -1,9 +1,11 @@
+'use client'
+
 import classes from '@/components/quiz/question/Question.module.scss'
 import QuestionTimer from '@/components/quiz/question-timer/QuestionTimer'
 import Answers from '@/components/quiz/answers/Answers'
-import { AnswerState } from '@/components/quiz/quiz/Quiz'
+import { AnswerState } from '@/components/quiz/answer-state'
 import { QuizQuestionView } from '@/models/quiz.model'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SubmittedAnswer } from '@/models/user-answer.model'
 import { CORRECT_TIME, QUESTION_TIME, SELECTED_TIME } from '@/constants/constants'
 
@@ -13,43 +15,50 @@ export type QuestionProps = {
   onSkipAnswer: () => void
 }
 
-type Answer = {
-  selectedAnswer: string
-  timeToAnswer: number
-}
+type Phase = 'idle' | 'selected'
+
+const HOLD_TIME = SELECTED_TIME + CORRECT_TIME
 
 const Question = ({ question, onSelectAnswer, onSkipAnswer }: QuestionProps) => {
   const firstRenderTime = useRef(new Date().getTime())
-  const [answer, setAnswer] = useState<Answer>({
-    selectedAnswer: '',
-    timeToAnswer: 0,
-  })
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [selectedAnswer, setSelectedAnswer] = useState('')
+  const [timeToAnswer, setTimeToAnswer] = useState(0)
+  const answerState: AnswerState = phase === 'selected' ? 'answered' : ''
 
-  const timer = answer.selectedAnswer ? CORRECT_TIME : QUESTION_TIME
-  const answerState: AnswerState = answer.selectedAnswer ? 'answered' : ''
+  useEffect(() => {
+    if (phase !== 'selected') {
+      return
+    }
 
-  const handleSelectAnswer = (selectedAnswer: string) => {
-    const timeToAnswer = Math.floor((new Date().getTime() - firstRenderTime.current) / 1000)
-
-    setAnswer({
-      selectedAnswer,
-      timeToAnswer,
-    })
-
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       onSelectAnswer({
         questionId: question.id,
         answer: selectedAnswer,
         timeToAnswer,
       })
-    }, SELECTED_TIME + CORRECT_TIME)
+    }, HOLD_TIME)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [phase, question.id, selectedAnswer, timeToAnswer, onSelectAnswer])
+
+  const handleSelectAnswer = (answer: string) => {
+    if (phase !== 'idle') {
+      return
+    }
+
+    setTimeToAnswer(Math.floor((new Date().getTime() - firstRenderTime.current) / 1000))
+    setSelectedAnswer(answer)
+    setPhase('selected')
   }
 
   return (
     <div className={classes.question}>
-      <QuestionTimer key={timer} timeout={timer} onTimeout={answer.selectedAnswer === '' ? onSkipAnswer : null} mode={answerState} />
+      <QuestionTimer timeout={QUESTION_TIME} running={phase === 'idle'} onTimeout={onSkipAnswer} mode={answerState} />
       <h2>{question.text}</h2>
-      <Answers answers={question.answers} selectedAnswer={answer.selectedAnswer} answerState={answerState} onSelect={handleSelectAnswer} />
+      <Answers answers={question.answers} selectedAnswer={selectedAnswer} answerState={answerState} onSelect={handleSelectAnswer} />
     </div>
   )
 }
