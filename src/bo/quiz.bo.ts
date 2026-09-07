@@ -9,8 +9,10 @@ import { DateRange, Quiz, QuizView } from '@/models/quiz.model'
 import { QuizSummary } from '@/models/quiz-summary.model'
 import { SubmittedAnswer, UserAnswer } from '@/models/user-answer.model'
 import { QuizUser } from '@/models/user-profile.model'
+import { submitQuizBodySchema } from '@/schemas/quiz.schema'
 import { getCurrentDate, isWeekday, shuffleArray, yearMonthFromDate } from '@/util/utility'
 import { Transaction } from 'firebase-admin/firestore'
+import * as v from 'valibot'
 
 export class QuizSubmitError extends Error {
   readonly status: number
@@ -30,21 +32,6 @@ const secondsPerPoint = maxAnswerSeconds / MAX_POINTS
 const pointsForCorrectAnswer = (timeToAnswer: number) => {
   const clamped = Math.min(Math.max(0, timeToAnswer), maxAnswerSeconds)
   return Math.max(0, MAX_POINTS - Math.floor(clamped / secondsPerPoint))
-}
-
-const isSubmittedAnswer = (value: unknown): value is SubmittedAnswer => {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-
-  const candidate = value as Record<string, unknown>
-  return (
-    typeof candidate.questionId === 'string' &&
-    candidate.questionId.length > 0 &&
-    typeof candidate.answer === 'string' &&
-    typeof candidate.timeToAnswer === 'number' &&
-    Number.isFinite(candidate.timeToAnswer)
-  )
 }
 
 const toQuizView = (quiz: Quiz, uid: string): QuizView => {
@@ -165,12 +152,15 @@ const getCompletedQuizDates = async (uid: string, range: DateRange): Promise<str
   return quizzes.filter((quiz) => Boolean(quiz.summaries[uid])).map((quiz) => quiz.date)
 }
 
-const submitAnswers = async (date: string, quizUser: QuizUser, answers: unknown): Promise<QuizSummary> => {
+const submitAnswers = async (date: string, quizUser: QuizUser, body: unknown): Promise<QuizSummary> => {
   const db = requireFirestore()
+  const parsed = v.safeParse(submitQuizBodySchema, body)
 
-  if (!Array.isArray(answers) || !answers.every(isSubmittedAnswer)) {
+  if (!parsed.success) {
     throw new QuizSubmitError(400, 'Invalid answers')
   }
+
+  const { answers } = parsed.output
 
   if (date !== getCurrentDate()) {
     throw new QuizSubmitError(403, 'Quiz is not open for scoring')

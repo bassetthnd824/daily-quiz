@@ -1,7 +1,9 @@
 import { quizService, QuizSubmitError } from '@/bo/quiz.bo'
+import { dateRangeSchema } from '@/schemas/quiz.schema'
 import { withCsrf } from '@/util/csrf'
 import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
+import * as v from 'valibot'
 
 export const GET = async (request: NextRequest) => {
   try {
@@ -11,14 +13,16 @@ export const GET = async (request: NextRequest) => {
       return session.response
     }
 
-    const begDate = request.nextUrl.searchParams.get('begDate') ?? ''
-    const endDate = request.nextUrl.searchParams.get('endDate') ?? ''
+    const dateRange = v.safeParse(dateRangeSchema, {
+      begDate: request.nextUrl.searchParams.get('begDate'),
+      endDate: request.nextUrl.searchParams.get('endDate'),
+    })
 
-    if (begDate && endDate) {
-      return NextResponse.json(await quizService.getCompletedQuizDates(session.uid, { begDate, endDate }))
+    if (!dateRange.success) {
+      return NextResponse.json([])
     }
 
-    return NextResponse.json([])
+    return NextResponse.json(await quizService.getCompletedQuizDates(session.uid, dateRange.output))
   } catch (error) {
     console.log(error)
     return new NextResponse('Internal Error', { status: 500 })

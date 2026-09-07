@@ -1,96 +1,71 @@
 'use client'
 
+import { useAppForm } from '@/components/form/form'
+import { requiredStringSchema } from '@/schemas/common.schema'
+import { submitQuestionDefaultValues, submitQuestionSchema } from '@/schemas/question.schema'
 import { csrfHeaders } from '@/util/get-cookie'
 import { useState } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
-
-type FormInputs = {
-  text: string
-  correctAnswer: string
-  answers: {
-    value: string
-  }[]
-}
+import * as v from 'valibot'
 
 const SubmitQuestionForm = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const {
-    control,
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormInputs>({
-    defaultValues: {
-      text: '',
-      correctAnswer: '',
-      answers: [{ value: '' }, { value: '' }, { value: '' }],
+  const form = useAppForm({
+    defaultValues: submitQuestionDefaultValues,
+    onSubmit: async ({ value, formApi }) => {
+      const question = v.parse(submitQuestionSchema, value)
+
+      const response = await fetch('/api/question', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          ...csrfHeaders(),
+        },
+        body: JSON.stringify(question),
+      })
+
+      if (response.ok) {
+        formApi.reset()
+        setErrorMessage('')
+        return
+      }
+
+      setErrorMessage(await response.text())
     },
-  })
-
-  const { fields: answerFields } = useFieldArray({
-    control,
-    name: 'answers',
-  })
-
-  const onSubmit = handleSubmit(async (data) => {
-    setIsSubmitting(true)
-    const question = {
-      text: data.text,
-      correctAnswer: data.correctAnswer,
-      answers: data.answers.map((answer) => answer.value),
-    }
-
-    const response = await fetch('/api/question', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        ...csrfHeaders(),
-      },
-      body: JSON.stringify(question),
-    })
-
-    if (response.ok) {
-      reset()
-      setErrorMessage('')
-      setIsSubmitting(false)
-    } else {
-      const error = await response.text()
-      setErrorMessage(error)
-      setIsSubmitting(false)
-    }
   })
 
   return (
     <>
       {errorMessage && <div className="errorMsg">{errorMessage}</div>}
 
-      <form onSubmit={onSubmit}>
-        <label htmlFor="text">Question Text</label>
-        <input {...register('text', { required: true })} id="text" />
-        {errors.text && <span className="error-text">This field is required</span>}
+      <form.AppForm>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            void form.handleSubmit()
+          }}
+        >
+          <form.AppField name="text" validators={{ onChange: requiredStringSchema }}>
+            {(field) => <field.TextField label="Question Text" />}
+          </form.AppField>
 
-        <label htmlFor="correctAnswer">Correct Answer</label>
-        <input {...register('correctAnswer', { required: true })} id="correctAnswer" />
-        {errors.correctAnswer && <span className="error-text">This field is required</span>}
+          <form.AppField name="correctAnswer" validators={{ onChange: requiredStringSchema }}>
+            {(field) => <field.TextField label="Correct Answer" />}
+          </form.AppField>
 
-        {answerFields.map((answer, index) => (
-          <div key={answer.id}>
-            <label htmlFor={`answer-${index}`}>Wrong Answer {index + 1}</label>
-            <input {...register(`answers.${index}.value`, { required: true })} id={`answer-${index}`} />
-            {errors.answers?.[index]?.value && <span className="error-text">This field is required</span>}
+          {submitQuestionDefaultValues.answers.map((_, index) => (
+            <form.AppField key={index} name={`answers[${index}]`} validators={{ onChange: requiredStringSchema }}>
+              {(field) => <field.TextField label={`Wrong Answer ${index + 1}`} />}
+            </form.AppField>
+          ))}
+
+          <div className="btn-container">
+            <form.SubmitButton label="Submit" />
           </div>
-        ))}
-
-        <div className="btn-container">
-          <button type="submit" className="btn" disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </button>
-        </div>
-      </form>
+        </form>
+      </form.AppForm>
     </>
   )
 }
