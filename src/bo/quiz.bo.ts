@@ -105,15 +105,15 @@ const getQuizView = async (date: string, uid: string): Promise<QuizView | undefi
   return toQuizView(quiz, uid)
 }
 
-const ensureTodaysQuiz = async (uid: string): Promise<QuizView> => {
+const createTodaysQuiz = async (): Promise<Quiz | undefined> => {
   const db = requireFirestore()
   const date = getCurrentDate()
 
   if (!isWeekday(date)) {
-    return emptyQuizView(date)
+    return undefined
   }
 
-  const quiz = await db.runTransaction(async (transaction) => {
+  return db.runTransaction(async (transaction) => {
     const existing = await quizDao.getQuizInTransaction(transaction, date)
 
     if (existing) {
@@ -139,6 +139,11 @@ const ensureTodaysQuiz = async (uid: string): Promise<QuizView> => {
 
     return created
   })
+}
+
+const ensureTodaysQuiz = async (uid: string): Promise<QuizView> => {
+  const date = getCurrentDate()
+  const quiz = await createTodaysQuiz()
 
   if (!quiz) {
     return emptyQuizView(date)
@@ -216,6 +221,7 @@ const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
 
 export const quizService = {
   getQuizView,
+  createTodaysQuiz,
   ensureTodaysQuiz,
   getCompletedQuizDates,
   submitAnswers,
