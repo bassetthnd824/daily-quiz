@@ -1,5 +1,7 @@
 export const IS_PRODUCTION: boolean = process.env.NODE_ENV === 'production'
 
+export const isFirebaseEmulator = () => process.env.NEXT_PUBLIC_APP_ENV === 'emulator'
+
 export const CSRF_TOKEN_NAME: string = 'csrftoken'
 
 export const ERROR_CODE_INVALID_CSRF: string = 'middleware/invalid-csrf-token'

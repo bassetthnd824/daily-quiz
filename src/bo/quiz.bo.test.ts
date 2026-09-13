@@ -66,6 +66,7 @@ describe('quizService.ensureTodaysQuiz', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+    vi.unstubAllEnvs()
   })
 
   it('returns an empty quiz on the weekend', async () => {
@@ -87,6 +88,7 @@ describe('quizService.ensureTodaysQuiz', () => {
   })
 
   it('creates a quiz from eligible questions', async () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_ENV', 'production')
     vi.setSystemTime(new Date(2026, 8, 7, 12, 0, 0))
     vi.mocked(quizDao.getQuizInTransaction).mockResolvedValue(undefined)
     vi.mocked(questionDao.getEligibleQuestions).mockResolvedValue([
@@ -97,6 +99,23 @@ describe('quizService.ensureTodaysQuiz', () => {
     const view = await quizService.ensureTodaysQuiz(quizUser.uid)
     expect(view.questions).toHaveLength(2)
     expect(quizDao.createQuiz).toHaveBeenCalledOnce()
+    expect(questionDao.setLastUsedDate).toHaveBeenCalledOnce()
+  })
+
+  it('does not mark questions used when using the emulator', async () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_ENV', 'emulator')
+    vi.setSystemTime(new Date(2026, 8, 7, 12, 0, 0))
+    vi.mocked(quizDao.getQuizInTransaction).mockResolvedValue(undefined)
+    vi.mocked(questionDao.getEligibleQuestions).mockResolvedValue([
+      makeQuestion({ id: 'q1' }),
+      makeQuestion({ id: 'q2', text: 'Capital of France?', answers: ['Paris', 'Lyon'] }),
+    ])
+    vi.mocked(questionDao.setLastUsedDate).mockReset()
+
+    await quizService.ensureTodaysQuiz(quizUser.uid)
+
+    expect(quizDao.createQuiz).toHaveBeenCalledOnce()
+    expect(questionDao.setLastUsedDate).not.toHaveBeenCalled()
   })
 
   it('returns an empty quiz when there are no eligible questions', async () => {
