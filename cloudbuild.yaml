@@ -1,6 +1,6 @@
 steps:
   # Step 1: Run unit tests
-  - name: 'node:22'
+  - name: 'node:24'
     id: 'app-test'
     entrypoint: 'bash'
     args:
@@ -10,7 +10,7 @@ steps:
         npm test
 
   # Step 2: Test and build Cloud Functions
-  - name: 'node:22'
+  - name: 'node:24'
     id: 'functions-test-build'
     entrypoint: 'bash'
     args:
@@ -63,7 +63,7 @@ steps:
       - 'CSRF_SECRET=CSRF_SECRET:latest,FIREBASE_SERVICE_ACCOUNT=FIREBASE_SERVICE_ACCOUNT:latest'
 
   # Step 6: Deploy Cloud Functions
-  - name: 'node:22'
+  - name: 'node:24'
     id: 'functions-deploy'
     entrypoint: 'bash'
     args:
