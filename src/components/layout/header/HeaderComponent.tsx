@@ -46,7 +46,13 @@ const HeaderComponent = () => {
       <header className={classes.header}>
         <div className={classes.headerWrapper}>
           <div className={classes.left}>
-            <button type="button" className={classes.menuButton} aria-label="Menu" onClick={onOpenMenu}>
+            <button
+              type="button"
+              className={classes.menuButton}
+              aria-label="Menu"
+              aria-expanded={isMenuOpen}
+              onClick={onOpenMenu}
+            >
               <i className="fas fa-bars"></i>
             </button>
           </div>
@@ -57,15 +63,21 @@ const HeaderComponent = () => {
 
           <div className={classes.right}>
             {currentUser && (
-              <div onClick={onToggleUserMenu}>
+              <button
+                type="button"
+                className={classes.accountButton}
+                aria-label="Account menu"
+                aria-expanded={isUserMenuOpen}
+                onClick={onToggleUserMenu}
+              >
                 <UserPhoto photoURL={currentUser.photoURL} />
-              </div>
+              </button>
             )}
             <div>{!currentUser && 'Welcome'}</div>
           </div>
         </div>
       </header>
-      {currentUser && isUserMenuOpen && <UserPhotoMenu open={onToggleUserMenu} close={onToggleUserMenu} />}
+      {currentUser && isUserMenuOpen && <UserPhotoMenu onClose={onToggleUserMenu} />}
     </>
   )
 }

@@ -20,6 +20,11 @@
   --light-gray: #c4c4c4;
   --white: #fff;
   --black: #000;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
+  --radius-pill: 999px;
 }
 
 [data-theme='dark'] {
@@ -169,6 +174,7 @@ form {
   select {
     display: block;
     border: 0.0625rem solid #000;
+    border-radius: var(--radius-md);
     padding: 0.75rem 1rem;
     font-size: inherit;
     margin-bottom: 1rem;
@@ -188,6 +194,7 @@ form {
   background-color: var(--primary);
   color: var(--on-primary);
   border: 0.0625rem solid transparent;
+  border-radius: var(--radius-md);
   font-size: inherit;
   padding: 0.75rem 1rem;
   cursor: pointer;

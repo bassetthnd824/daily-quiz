@@ -5,7 +5,7 @@
   margin: 0 auto;
   padding: 1.5rem 2rem;
   border: 0.0625rem solid transparent;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   background-color: var(--surface);
 }
 
@@ -51,6 +51,7 @@
   background-color: var(--danger);
   color: var(--white);
   border: 0.0625rem solid transparent;
+  border-radius: var(--radius-md);
   font-size: inherit;
   padding: 0.75rem 1rem;
   cursor: pointer;

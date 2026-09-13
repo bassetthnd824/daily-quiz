@@ -25,12 +25,16 @@
 
 .progress {
   width: 100%;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
 
   &::-webkit-progress-bar {
     background: var(--primary);
+    border-radius: var(--radius-pill);
   }
 
   &::-webkit-progress-value {
     background: var(--white);
+    border-radius: var(--radius-pill);
   }
 }
