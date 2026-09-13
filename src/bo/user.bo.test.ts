@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { userDao } from '@/dao/user.dao'
 import { requireAuth, requireFirestore } from '@/firebase/server'
-import { quizUser } from '@/test/fixtures'
+import { adminUser, quizUser } from '@/test/fixtures'
 import { userService, UserProfileError } from './user.bo'
 
 vi.mock('@/dao/user.dao', () => ({
@@ -10,6 +10,9 @@ vi.mock('@/dao/user.dao', () => ({
     getUserInTransaction: vi.fn(),
     createUserProfile: vi.fn(),
     updateUserProfile: vi.fn(),
+    listUsers: vi.fn(),
+    updateUserRoles: vi.fn(),
+    deleteUser: vi.fn(),
   },
 }))
 
@@ -154,6 +157,193 @@ describe('userService', () => {
       status: 404,
     })
     expect(userDao.updateUserProfile).not.toHaveBeenCalled()
+  })
+})
+
+describe('userService.listQuizUsers', () => {
+  it('rejects non-admins', async () => {
+    await expect(userService.listQuizUsers(quizUser)).rejects.toMatchObject({ status: 403 })
+  })
+
+  it('returns active users sorted by name and skips disabled accounts', async () => {
+    vi.mocked(userDao.listUsers).mockResolvedValue([
+      {
+        uid: 'user-2',
+        nickname: 'Grace',
+        displayName: 'Grace Hopper',
+        photoURL: 'https://example.com/grace.png',
+        canSubmitQuestions: true,
+        isAdmin: false,
+      },
+      {
+        uid: quizUser.uid,
+        nickname: 'Ada',
+        displayName: 'Ada Lovelace',
+        photoURL: 'https://example.com/ada.png',
+        canSubmitQuestions: true,
+        isAdmin: false,
+      },
+      {
+        uid: 'banned-1',
+        nickname: '',
+        displayName: 'Banned',
+        photoURL: '',
+        canSubmitQuestions: true,
+        isAdmin: false,
+      },
+    ])
+    vi.mocked(requireAuth).mockReturnValue({
+      getUsers: vi.fn().mockResolvedValue({
+        users: [
+          { uid: 'user-2', email: 'grace@example.com', emailVerified: true, phoneNumber: undefined, disabled: false },
+          {
+            uid: quizUser.uid,
+            email: quizUser.email,
+            emailVerified: true,
+            phoneNumber: undefined,
+            disabled: false,
+          },
+          { uid: 'banned-1', email: 'banned@example.com', emailVerified: true, phoneNumber: undefined, disabled: true },
+        ],
+        notFound: [],
+      }),
+    } as never)
+
+    const users = await userService.listQuizUsers(adminUser)
+
+    expect(users.map((user) => user.uid)).toEqual([quizUser.uid, 'user-2'])
+    expect(users[0]?.displayName).toBe('Ada Lovelace')
+  })
+})
+
+describe('userService.reviewUser', () => {
+  beforeEach(() => {
+    vi.mocked(userDao.getUser).mockReset()
+    vi.mocked(userDao.updateUserRoles).mockReset()
+  })
+
+  it('rejects non-admins', async () => {
+    await expect(userService.reviewUser(quizUser, 'user-2', { action: 'grantAdmin' })).rejects.toMatchObject({
+      status: 403,
+    })
+  })
+
+  it('rejects changes to the admin own account', async () => {
+    await expect(userService.reviewUser(adminUser, adminUser.uid, { action: 'revokeAdmin' })).rejects.toMatchObject({
+      status: 400,
+    })
+  })
+
+  it('grants admin', async () => {
+    const profile = {
+      nickname: 'Ada',
+      displayName: 'Ada Lovelace',
+      photoURL: 'https://example.com/ada.png',
+      canSubmitQuestions: true,
+      isAdmin: false,
+    }
+    vi.mocked(userDao.getUser).mockResolvedValueOnce(profile).mockResolvedValueOnce({ ...profile, isAdmin: true })
+    vi.mocked(requireAuth).mockReturnValue({
+      getUser: vi.fn().mockResolvedValue({
+        uid: quizUser.uid,
+        email: quizUser.email,
+        emailVerified: true,
+        phoneNumber: undefined,
+      }),
+    } as never)
+
+    await expect(userService.reviewUser(adminUser, quizUser.uid, { action: 'grantAdmin' })).resolves.toMatchObject({
+      uid: quizUser.uid,
+      isAdmin: true,
+    })
+    expect(userDao.updateUserRoles).toHaveBeenCalledWith(quizUser.uid, { isAdmin: true })
+  })
+
+  it('revokes question submission', async () => {
+    const profile = {
+      nickname: 'Ada',
+      displayName: 'Ada Lovelace',
+      photoURL: 'https://example.com/ada.png',
+      canSubmitQuestions: true,
+      isAdmin: false,
+    }
+    vi.mocked(userDao.getUser)
+      .mockResolvedValueOnce(profile)
+      .mockResolvedValueOnce({ ...profile, canSubmitQuestions: false })
+    vi.mocked(requireAuth).mockReturnValue({
+      getUser: vi.fn().mockResolvedValue({
+        uid: quizUser.uid,
+        email: quizUser.email,
+        emailVerified: true,
+        phoneNumber: undefined,
+      }),
+    } as never)
+
+    await expect(
+      userService.reviewUser(adminUser, quizUser.uid, { action: 'revokeSubmitQuestions' }),
+    ).resolves.toMatchObject({
+      canSubmitQuestions: false,
+    })
+    expect(userDao.updateUserRoles).toHaveBeenCalledWith(quizUser.uid, { canSubmitQuestions: false })
+  })
+
+  it('rejects granting admin when the user is already an admin', async () => {
+    vi.mocked(userDao.getUser).mockResolvedValue({
+      nickname: 'Ada',
+      displayName: 'Ada Lovelace',
+      photoURL: 'https://example.com/ada.png',
+      canSubmitQuestions: true,
+      isAdmin: true,
+    })
+
+    await expect(userService.reviewUser(adminUser, quizUser.uid, { action: 'grantAdmin' })).rejects.toMatchObject({
+      status: 409,
+    })
+  })
+})
+
+describe('userService.deleteAndBanUser', () => {
+  beforeEach(() => {
+    vi.mocked(userDao.getUser).mockReset()
+    vi.mocked(userDao.deleteUser).mockReset()
+  })
+
+  it('disables the auth user and deletes the profile', async () => {
+    vi.mocked(userDao.getUser).mockResolvedValue({
+      nickname: 'Ada',
+      displayName: 'Ada Lovelace',
+      photoURL: 'https://example.com/ada.png',
+      canSubmitQuestions: true,
+      isAdmin: false,
+    })
+    const updateUser = vi.fn().mockResolvedValue(undefined)
+    vi.mocked(requireAuth).mockReturnValue({ updateUser } as never)
+
+    await userService.deleteAndBanUser(adminUser, quizUser.uid)
+
+    expect(updateUser).toHaveBeenCalledWith(quizUser.uid, { disabled: true })
+    expect(userDao.deleteUser).toHaveBeenCalledWith(quizUser.uid)
+  })
+
+  it('deletes the profile when the auth user is already gone', async () => {
+    vi.mocked(userDao.getUser).mockResolvedValue({
+      nickname: 'Ada',
+      displayName: 'Ada Lovelace',
+      photoURL: 'https://example.com/ada.png',
+      canSubmitQuestions: true,
+      isAdmin: false,
+    })
+    vi.mocked(requireAuth).mockReturnValue({
+      updateUser: vi.fn().mockRejectedValue({ code: 'auth/user-not-found' }),
+    } as never)
+
+    await userService.deleteAndBanUser(adminUser, quizUser.uid)
+
+    expect(userDao.deleteUser).toHaveBeenCalledWith(quizUser.uid)
+  })
+
+  it('rejects deleting yourself', async () => {
+    await expect(userService.deleteAndBanUser(adminUser, adminUser.uid)).rejects.toMatchObject({ status: 400 })
   })
 })
 

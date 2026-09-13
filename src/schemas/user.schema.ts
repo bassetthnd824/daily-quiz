@@ -12,3 +12,11 @@ export const updateUserProfileSchema = v.object({
 
 export type UpdateUserProfileValues = v.InferInput<typeof updateUserProfileSchema>
 export type UpdateUserProfilePayload = v.InferOutput<typeof updateUserProfileSchema>
+
+export const adminUserActionSchema = v.union([
+  v.object({ action: v.literal('grantAdmin') }),
+  v.object({ action: v.literal('revokeAdmin') }),
+  v.object({ action: v.literal('revokeSubmitQuestions') }),
+])
+
+export type AdminUserAction = v.InferOutput<typeof adminUserActionSchema>
