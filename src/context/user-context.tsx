@@ -11,12 +11,14 @@ export type UserContextValue = {
   currentUser: QuizUser | null
   loginGoogle: () => Promise<void>
   logout: () => Promise<void>
+  updateCurrentUser: (user: QuizUser) => void
 }
 
 export const UserContext = createContext<UserContextValue>({
   currentUser: null,
   loginGoogle: async () => {},
   logout: async () => {},
+  updateCurrentUser: () => {},
 })
 
 const UserContextProvider = ({ children }: { children: ReactNode }) => {
@@ -96,12 +98,17 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  const updateCurrentUser = (user: QuizUser) => {
+    setCurrentUser(user)
+  }
+
   return (
     <UserContext.Provider
       value={{
         currentUser,
         loginGoogle,
         logout,
+        updateCurrentUser,
       }}
     >
       {children}
