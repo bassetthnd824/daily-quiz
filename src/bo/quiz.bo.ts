@@ -1,17 +1,14 @@
 import 'server-only'
-import { isFirebaseEmulator, MAX_DAILY_QUESTIONS, MAX_POINTS, QUESTION_TIME } from '@/constants/constants'
-import { questionDao } from '@/dao/question.dao'
+import { MAX_POINTS, QUESTION_TIME } from '@/constants/constants'
 import { quizDao } from '@/dao/quiz.dao'
 import { requireFirestore } from '@/firebase/server'
 import { LeaderboardEntry } from '@/models/leaderboard-entry.model'
-import { Question } from '@/models/question.model'
 import { DateRange, Quiz, QuizView } from '@/models/quiz.model'
 import { QuizSummary } from '@/models/quiz-summary.model'
 import { SubmittedAnswer, UserAnswer } from '@/models/user-answer.model'
 import { QuizUser } from '@/models/user-profile.model'
 import { submitQuizBodySchema } from '@/schemas/quiz.schema'
-import { getCurrentDate, isWeekday, shuffleArray, yearMonthFromDate } from '@/util/utility'
-import { Transaction } from 'firebase-admin/firestore'
+import { getCurrentDate, shuffleArray, yearMonthFromDate } from '@/util/utility'
 import * as v from 'valibot'
 
 export class QuizSubmitError extends Error {
@@ -90,11 +87,6 @@ const emptyQuizView = (date: string): QuizView => ({
   questions: [],
 })
 
-const pickRandomQuestions = async (transaction: Transaction): Promise<Question[]> => {
-  const eligible = await questionDao.getEligibleQuestions(transaction)
-  return shuffleArray(eligible).slice(0, MAX_DAILY_QUESTIONS)
-}
-
 const getQuizView = async (date: string, uid: string): Promise<QuizView | undefined> => {
   const quiz = await quizDao.getQuiz(date)
 
@@ -105,51 +97,9 @@ const getQuizView = async (date: string, uid: string): Promise<QuizView | undefi
   return toQuizView(quiz, uid)
 }
 
-const createTodaysQuiz = async (): Promise<Quiz | undefined> => {
-  const db = requireFirestore()
+const getTodaysQuizView = async (uid: string): Promise<QuizView> => {
   const date = getCurrentDate()
-
-  if (!isWeekday(date)) {
-    return undefined
-  }
-
-  return db.runTransaction(async (transaction) => {
-    const existing = await quizDao.getQuizInTransaction(transaction, date)
-
-    if (existing) {
-      return existing
-    }
-
-    const questions = await pickRandomQuestions(transaction)
-
-    if (questions.length === 0) {
-      return undefined
-    }
-
-    const created: Quiz = {
-      questions,
-      date,
-    }
-
-    quizDao.createQuiz(transaction, created)
-
-    if (!isFirebaseEmulator()) {
-      questionDao.setLastUsedDate(transaction, questions)
-    }
-
-    return created
-  })
-}
-
-const ensureTodaysQuiz = async (uid: string): Promise<QuizView> => {
-  const date = getCurrentDate()
-  const quiz = await createTodaysQuiz()
-
-  if (!quiz) {
-    return emptyQuizView(date)
-  }
-
-  return toQuizView(quiz, uid)
+  return (await getQuizView(date, uid)) ?? emptyQuizView(date)
 }
 
 const getCompletedQuizDates = async (uid: string, range: DateRange): Promise<string[]> => {
@@ -221,8 +171,7 @@ const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
 
 export const quizService = {
   getQuizView,
-  createTodaysQuiz,
-  ensureTodaysQuiz,
+  getTodaysQuizView,
   getCompletedQuizDates,
   submitAnswers,
   getLeaderboard,

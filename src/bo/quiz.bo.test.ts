@@ -1,16 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { questionDao } from '@/dao/question.dao'
 import { quizDao } from '@/dao/quiz.dao'
 import { requireFirestore } from '@/firebase/server'
-import { makeQuestion, makeQuiz, makeSummary, quizUser } from '@/test/fixtures'
+import { makeQuiz, makeSummary, quizUser } from '@/test/fixtures'
 import { QuizSubmitError, quizService } from './quiz.bo'
-
-vi.mock('@/dao/question.dao', () => ({
-  questionDao: {
-    getEligibleQuestions: vi.fn(),
-    setLastUsedDate: vi.fn(),
-  },
-}))
 
 vi.mock('@/dao/quiz.dao', () => ({
   quizDao: {
@@ -57,74 +49,34 @@ describe('quizService.getQuizView', () => {
   })
 })
 
-describe('quizService.ensureTodaysQuiz', () => {
+describe('quizService.getTodaysQuizView', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    vi.mocked(requireFirestore).mockReturnValue({ runTransaction } as never)
-    runTransaction.mockImplementation(async (fn) => fn({}))
   })
 
   afterEach(() => {
     vi.useRealTimers()
-    vi.unstubAllEnvs()
   })
 
-  it('returns an empty quiz on the weekend', async () => {
-    vi.setSystemTime(new Date(2026, 8, 5, 12, 0, 0))
-    const view = await quizService.ensureTodaysQuiz(quizUser.uid)
+  it('returns an empty quiz when none exists for today', async () => {
+    vi.setSystemTime(new Date(2026, 8, 7, 12, 0, 0))
+    vi.mocked(quizDao.getQuiz).mockResolvedValue(undefined)
+
+    const view = await quizService.getTodaysQuizView(quizUser.uid)
 
     expect(view.questions).toEqual([])
-    expect(view.date).toBe('2026-09-05')
-    expect(quizDao.getQuizInTransaction).not.toHaveBeenCalled()
-  })
-
-  it('returns an existing weekday quiz', async () => {
-    vi.setSystemTime(new Date(2026, 8, 7, 12, 0, 0))
-    vi.mocked(quizDao.getQuizInTransaction).mockResolvedValue(makeQuiz())
-
-    const view = await quizService.ensureTodaysQuiz(quizUser.uid)
-    expect(view.questions).toHaveLength(2)
+    expect(view.date).toBe('2026-09-07')
     expect(quizDao.createQuiz).not.toHaveBeenCalled()
   })
 
-  it('creates a quiz from eligible questions', async () => {
-    vi.stubEnv('NEXT_PUBLIC_APP_ENV', 'production')
+  it('returns today\'s quiz without creating one', async () => {
     vi.setSystemTime(new Date(2026, 8, 7, 12, 0, 0))
-    vi.mocked(quizDao.getQuizInTransaction).mockResolvedValue(undefined)
-    vi.mocked(questionDao.getEligibleQuestions).mockResolvedValue([
-      makeQuestion({ id: 'q1' }),
-      makeQuestion({ id: 'q2', text: 'Capital of France?', answers: ['Paris', 'Lyon'] }),
-    ])
+    vi.mocked(quizDao.getQuiz).mockResolvedValue(makeQuiz())
 
-    const view = await quizService.ensureTodaysQuiz(quizUser.uid)
+    const view = await quizService.getTodaysQuizView(quizUser.uid)
+
     expect(view.questions).toHaveLength(2)
-    expect(quizDao.createQuiz).toHaveBeenCalledOnce()
-    expect(questionDao.setLastUsedDate).toHaveBeenCalledOnce()
-  })
-
-  it('does not mark questions used when using the emulator', async () => {
-    vi.stubEnv('NEXT_PUBLIC_APP_ENV', 'emulator')
-    vi.setSystemTime(new Date(2026, 8, 7, 12, 0, 0))
-    vi.mocked(quizDao.getQuizInTransaction).mockResolvedValue(undefined)
-    vi.mocked(questionDao.getEligibleQuestions).mockResolvedValue([
-      makeQuestion({ id: 'q1' }),
-      makeQuestion({ id: 'q2', text: 'Capital of France?', answers: ['Paris', 'Lyon'] }),
-    ])
-    vi.mocked(questionDao.setLastUsedDate).mockReset()
-
-    await quizService.ensureTodaysQuiz(quizUser.uid)
-
-    expect(quizDao.createQuiz).toHaveBeenCalledOnce()
-    expect(questionDao.setLastUsedDate).not.toHaveBeenCalled()
-  })
-
-  it('returns an empty quiz when there are no eligible questions', async () => {
-    vi.setSystemTime(new Date(2026, 8, 7, 12, 0, 0))
-    vi.mocked(quizDao.getQuizInTransaction).mockResolvedValue(undefined)
-    vi.mocked(questionDao.getEligibleQuestions).mockResolvedValue([])
-
-    const view = await quizService.ensureTodaysQuiz(quizUser.uid)
-    expect(view.questions).toEqual([])
+    expect(quizDao.getQuiz).toHaveBeenCalledWith('2026-09-07')
     expect(quizDao.createQuiz).not.toHaveBeenCalled()
   })
 })
