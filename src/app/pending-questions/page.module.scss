@@ -1,0 +1,68 @@
+@use '@/styles/mixins/_media-breakpoints.scss' as *;
+
+.review {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  border: 0.0625rem solid transparent;
+  border-radius: 0.5rem;
+  background-color: var(--surface);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.position {
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+
+  @include media-breakpoint-down('sm') {
+    flex: 1 0 100%;
+    order: -1;
+  }
+}
+
+.meta {
+  margin-bottom: 0.5rem;
+}
+
+.errorMsg {
+  color: var(--danger);
+  margin-bottom: 1rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.reject {
+  background-color: var(--danger);
+  color: var(--white);
+  border: 0.0625rem solid transparent;
+  font-size: inherit;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.9);
+  }
+
+  &:disabled {
+    background-color: var(--background);
+    border-color: var(--background);
+    color: var(--foreground);
+    cursor: default;
+  }
+}

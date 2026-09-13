@@ -1,13 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NEVER_USED_DATE } from '@/constants/constants'
 import { QuestionStatus } from '@/models/question-status.model'
-import { quizUser } from '@/test/fixtures'
-import { QuestionSubmitError, questionService } from './question.bo'
+import { adminUser, makeQuestion, quizUser } from '@/test/fixtures'
+import { QuestionError, questionService } from './question.bo'
 import { questionDao } from '@/dao/question.dao'
 
 vi.mock('@/dao/question.dao', () => ({
   questionDao: {
     addQuestion: vi.fn(),
+    listPendingQuestions: vi.fn(),
+    getQuestion: vi.fn(),
+    updateQuestion: vi.fn(),
   },
 }))
 
@@ -28,7 +31,7 @@ describe('questionService.submitQuestion', () => {
         { ...quizUser, canSubmitQuestions: false, isAdmin: false },
         { text: 'Q', correctAnswer: 'A', answers: ['B'] },
       ),
-    ).rejects.toMatchObject({ name: 'QuestionSubmitError', status: 403 })
+    ).rejects.toMatchObject({ name: 'QuestionError', status: 403 })
   })
 
   it('rejects invalid payloads', async () => {
@@ -64,9 +67,90 @@ describe('questionService.submitQuestion', () => {
   })
 })
 
-describe('QuestionSubmitError', () => {
+describe('questionService.listPendingQuestions', () => {
+  it('rejects non-admins', async () => {
+    vi.mocked(questionDao.listPendingQuestions).mockReset()
+
+    await expect(questionService.listPendingQuestions(quizUser)).rejects.toMatchObject({
+      name: 'QuestionError',
+      status: 403,
+    })
+    expect(questionDao.listPendingQuestions).not.toHaveBeenCalled()
+  })
+
+  it('returns pending questions for admins', async () => {
+    const pending = [makeQuestion({ id: 'q1', status: QuestionStatus.PENDING })]
+    vi.mocked(questionDao.listPendingQuestions).mockResolvedValue(pending)
+
+    await expect(questionService.listPendingQuestions(adminUser)).resolves.toEqual(pending)
+  })
+})
+
+describe('questionService.reviewQuestion', () => {
+  beforeEach(() => {
+    vi.mocked(questionDao.getQuestion).mockReset()
+    vi.mocked(questionDao.updateQuestion).mockReset()
+  })
+
+  it('rejects non-admins', async () => {
+    await expect(questionService.reviewQuestion(quizUser, 'q1', { action: 'reject' })).rejects.toMatchObject({
+      status: 403,
+    })
+  })
+
+  it('rejects an invalid payload', async () => {
+    await expect(questionService.reviewQuestion(adminUser, 'q1', { action: 'approve' })).rejects.toMatchObject({
+      status: 400,
+    })
+  })
+
+  it('rejects a missing question', async () => {
+    vi.mocked(questionDao.getQuestion).mockResolvedValue(undefined)
+
+    await expect(questionService.reviewQuestion(adminUser, 'q1', { action: 'reject' })).rejects.toMatchObject({
+      status: 404,
+    })
+  })
+
+  it('rejects a question that is no longer pending', async () => {
+    vi.mocked(questionDao.getQuestion).mockResolvedValue(makeQuestion({ status: QuestionStatus.ACTIVE }))
+
+    await expect(questionService.reviewQuestion(adminUser, 'q1', { action: 'reject' })).rejects.toMatchObject({
+      status: 409,
+    })
+  })
+
+  it('marks a pending question rejected', async () => {
+    vi.mocked(questionDao.getQuestion).mockResolvedValue(makeQuestion({ status: QuestionStatus.PENDING }))
+
+    await questionService.reviewQuestion(adminUser, 'q1', { action: 'reject' })
+
+    expect(questionDao.updateQuestion).toHaveBeenCalledWith('q1', { status: QuestionStatus.REJECTED })
+  })
+
+  it('saves edits and marks a pending question active', async () => {
+    vi.mocked(questionDao.getQuestion).mockResolvedValue(
+      makeQuestion({ status: QuestionStatus.PENDING, text: 'Old', answers: ['A', 'B', 'C'] }),
+    )
+
+    await questionService.reviewQuestion(adminUser, 'q1', {
+      action: 'approve',
+      text: 'What is 2 + 2?',
+      correctAnswer: '4',
+      answers: ['3', '5', '22'],
+    })
+
+    expect(questionDao.updateQuestion).toHaveBeenCalledWith('q1', {
+      text: 'What is 2 + 2?',
+      answers: ['4', '3', '5', '22'],
+      status: QuestionStatus.ACTIVE,
+    })
+  })
+})
+
+describe('QuestionError', () => {
   it('exposes a status code', () => {
-    const error = new QuestionSubmitError(403, 'Nope')
+    const error = new QuestionError(403, 'Nope')
     expect(error.status).toBe(403)
     expect(error.message).toBe('Nope')
   })

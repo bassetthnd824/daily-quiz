@@ -45,8 +45,37 @@ const addQuestion = async (question: Omit<Question, 'id'>): Promise<void> => {
   await requireFirestore().collection(QUESTIONS).doc().set({ ...question })
 }
 
+const listPendingQuestions = async (): Promise<Question[]> => {
+  const results = await requireFirestore()
+    .collection(QUESTIONS)
+    .where('status', '==', QuestionStatus.PENDING)
+    .get()
+
+  return results.docs
+    .map((doc) => toQuestion(doc.id, doc.data()))
+    .sort((left, right) => left.dateSubmitted.localeCompare(right.dateSubmitted))
+}
+
+const getQuestion = async (questionId: string): Promise<Question | undefined> => {
+  const snapshot = await questionRef(questionId).get()
+  const data = snapshot.data()
+
+  if (!snapshot.exists || !data) {
+    return undefined
+  }
+
+  return toQuestion(snapshot.id, data)
+}
+
+const updateQuestion = async (questionId: string, updates: Partial<Omit<Question, 'id'>>): Promise<void> => {
+  await questionRef(questionId).update({ ...updates })
+}
+
 export const questionDao = {
   getEligibleQuestions,
   setLastUsedDate,
   addQuestion,
+  listPendingQuestions,
+  getQuestion,
+  updateQuestion,
 }
