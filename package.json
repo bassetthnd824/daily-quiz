@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "emulators": "firebase emulators:start --only auth,firestore",
-    "test:emulators": "firebase emulators:exec \"npm test\""
+    "test:emulators": "firebase emulators:exec \"npm test\"",
+    "build-questions": "node scripts/build-questions.mjs",
+    "import-questions": "node scripts/import-questions.mjs"
   },
   "dependencies": {
     "@tanstack/react-form": "^1.33.5",
