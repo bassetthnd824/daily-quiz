@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import classes from './SidePanel.module.scss'
 
 type SidePanelProps = {
@@ -11,6 +11,19 @@ type SidePanelProps = {
 }
 
 const SidePanel = ({ side, titleId, onClose, children }: SidePanelProps) => {
+  useEffect(() => {
+    const { body, documentElement } = document
+    const previousBodyOverflow = body.style.overflow
+    const previousHtmlOverflow = documentElement.style.overflow
+    body.style.overflow = 'hidden'
+    documentElement.style.overflow = 'hidden'
+
+    return () => {
+      body.style.overflow = previousBodyOverflow
+      documentElement.style.overflow = previousHtmlOverflow
+    }
+  }, [])
+
   return (
     <div
       className={`${classes.panel} ${classes[side]}`}
