@@ -45,8 +45,13 @@ const createUserProfile = (transaction: Transaction, userId: string, userProfile
   transaction.create(userRef(userId), { ...userProfile })
 }
 
+const updateUserProfile = async (userId: string, updates: Pick<UserProfile, 'nickname'>) => {
+  await userRef(userId).update({ ...updates })
+}
+
 export const userDao = {
   getUser,
   getUserInTransaction,
   createUserProfile,
+  updateUserProfile,
 }

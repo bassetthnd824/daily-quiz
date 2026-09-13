@@ -11,6 +11,7 @@ const renderMenu = (currentUser: typeof quizUser | null) =>
         currentUser,
         loginGoogle: async () => {},
         logout: async () => {},
+        updateCurrentUser: () => {},
       }}
     >
       <NavMenu usageClass="homepageNav" />

@@ -2,13 +2,14 @@ import { describe, expect, it, vi } from 'vitest'
 import { userDao } from '@/dao/user.dao'
 import { requireAuth, requireFirestore } from '@/firebase/server'
 import { quizUser } from '@/test/fixtures'
-import { userService } from './user.bo'
+import { userService, UserProfileError } from './user.bo'
 
 vi.mock('@/dao/user.dao', () => ({
   userDao: {
     getUser: vi.fn(),
     getUserInTransaction: vi.fn(),
     createUserProfile: vi.fn(),
+    updateUserProfile: vi.fn(),
   },
 }))
 
@@ -62,6 +63,7 @@ describe('userService', () => {
     const runTransaction = vi.fn(async (fn: (transaction: object) => unknown) => fn({}))
     vi.mocked(requireFirestore).mockReturnValue({ runTransaction } as never)
     vi.mocked(userDao.getUserInTransaction).mockResolvedValue(existing)
+    vi.mocked(userDao.createUserProfile).mockReset()
 
     await expect(
       userService.ensureUserProfile({
@@ -105,5 +107,60 @@ describe('userService', () => {
     vi.mocked(userDao.getUser).mockResolvedValue(undefined)
 
     await expect(userService.getQuizUser(quizUser.uid)).resolves.toBeUndefined()
+  })
+
+  it('updates a nickname and returns the quiz user', async () => {
+    const profile = {
+      nickname: 'Ada',
+      displayName: 'Ada Lovelace',
+      photoURL: 'https://example.com/ada.png',
+      canSubmitQuestions: true,
+      isAdmin: false,
+    }
+    vi.mocked(userDao.getUser)
+      .mockResolvedValueOnce(profile)
+      .mockResolvedValueOnce({ ...profile, nickname: 'Newbie' })
+    vi.mocked(userDao.updateUserProfile).mockResolvedValue(undefined)
+    vi.mocked(requireAuth).mockReturnValue({
+      getUser: vi.fn().mockResolvedValue({
+        uid: quizUser.uid,
+        email: quizUser.email,
+        emailVerified: true,
+        phoneNumber: undefined,
+      }),
+    } as never)
+
+    await expect(userService.updateUserProfile(quizUser.uid, { nickname: 'Newbie' })).resolves.toMatchObject({
+      uid: quizUser.uid,
+      nickname: 'Newbie',
+    })
+    expect(userDao.updateUserProfile).toHaveBeenCalledWith(quizUser.uid, { nickname: 'Newbie' })
+  })
+
+  it('rejects an invalid nickname update', async () => {
+    vi.mocked(userDao.updateUserProfile).mockReset()
+
+    await expect(userService.updateUserProfile(quizUser.uid, { nickname: 'a'.repeat(41) })).rejects.toMatchObject({
+      status: 400,
+    })
+    expect(userDao.updateUserProfile).not.toHaveBeenCalled()
+  })
+
+  it('rejects an update when the profile is missing', async () => {
+    vi.mocked(userDao.updateUserProfile).mockReset()
+    vi.mocked(userDao.getUser).mockResolvedValue(undefined)
+
+    await expect(userService.updateUserProfile(quizUser.uid, { nickname: 'Ada' })).rejects.toMatchObject({
+      status: 404,
+    })
+    expect(userDao.updateUserProfile).not.toHaveBeenCalled()
+  })
+})
+
+describe('UserProfileError', () => {
+  it('exposes a status code', () => {
+    const error = new UserProfileError(400, 'Invalid profile')
+    expect(error.status).toBe(400)
+    expect(error.message).toBe('Invalid profile')
   })
 })

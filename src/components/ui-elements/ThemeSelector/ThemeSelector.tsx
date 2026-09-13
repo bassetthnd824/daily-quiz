@@ -11,7 +11,7 @@ const ThemeSelector = () => {
       <legend className={classes.legend}>Select your favorite theme</legend>
       <div className={classes.options}>
         {THEMES.map(({ id, label }) => (
-          <label key={id} className={`btn ${classes.themeLabel}`}>
+          <label key={id} className={classes.themeLabel}>
             <input
               type="radio"
               name="theme"
