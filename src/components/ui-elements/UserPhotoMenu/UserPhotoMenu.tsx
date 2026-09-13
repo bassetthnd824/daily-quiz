@@ -1,61 +1,62 @@
 'use client'
 
-import classes from './UserPhotoMenu.module.scss'
-import { useState } from 'react'
-import { useAuth } from '@/context/user-context'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import SidePanel from '@/components/layout/side-panel/SidePanel'
+import navClasses from '@/components/nav-menu/NavMenu.module.scss'
 import UserPhoto from '@/components/ui-elements/UserPhoto/UserPhoto'
+import { useAuth } from '@/context/user-context'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import classes from './UserPhotoMenu.module.scss'
 
 type UserPhotoMenuProps = {
-  open: () => void
-  close: () => void
+  onClose: () => void
 }
 
-const UserPhotoMenu: React.FC<UserPhotoMenuProps> = ({ open, close }: UserPhotoMenuProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+const UserPhotoMenu: React.FC<UserPhotoMenuProps> = ({ onClose }: UserPhotoMenuProps) => {
   const { currentUser, logout } = useAuth()
   const router = useRouter()
 
   const handleLogout = async () => {
     try {
       await logout()
+      onClose()
       router.push('/sign-in')
     } catch {
       return
     }
   }
 
-  const toggleMenu = () => {
-    if (isMenuOpen) {
-      close()
-    } else {
-      open()
-    }
-
-    setIsMenuOpen((isMenuOpen) => !isMenuOpen)
+  if (!currentUser) {
+    return null
   }
 
   return (
-    <div className={classes.userMenu}>
-      <div className={classes.dropdownMenu}>
-        <h2 className={classes.userNamePhoto}>
-          <div className={classes.userName}>{currentUser && currentUser.displayName}</div>
-          <div className={classes.menuTrigger} onClick={toggleMenu}>
-            {currentUser && <UserPhoto photoURL={currentUser.photoURL} size={40} />}
-          </div>
-        </h2>
-        <p>{currentUser && currentUser.email}</p>
-        <p>{currentUser && currentUser.phoneNumber}</p>
-        <p>{currentUser && currentUser.nickname}</p>
-        <p className="mt-16">{currentUser && <Link href="/user-profile" onClick={close}>User Profile</Link>}</p>
-        {currentUser && (
-          <button className="btn btn-link" onClick={handleLogout}>
-            Logout
-          </button>
-        )}
+    <SidePanel side="right" titleId="account-menu-title" onClose={onClose}>
+      <div className={classes.identity}>
+        <UserPhoto photoURL={currentUser.photoURL} size={48} />
+        <div className={classes.details}>
+          <h2 id="account-menu-title" className={classes.name}>
+            {currentUser.displayName}
+          </h2>
+          {currentUser.email && <p className={classes.email}>{currentUser.email}</p>}
+        </div>
       </div>
-    </div>
+
+      <nav className={navClasses.headerNav}>
+        <ul className={navClasses.navMenu}>
+          <li className={navClasses.navMenuItem}>
+            <Link href="/user-profile" onClick={onClose}>
+              User Profile
+            </Link>
+          </li>
+          <li className={navClasses.navMenuItem}>
+            <button type="button" className="btn-link" onClick={() => void handleLogout()}>
+              Logout
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </SidePanel>
   )
 }
 

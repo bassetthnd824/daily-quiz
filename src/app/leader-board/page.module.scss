@@ -1,6 +1,11 @@
 @use '@/styles/mixins/_media-breakpoints.scss' as *;
 
 .leaderBoard {
+  background-color: var(--surface);
+  border: 0.0625rem solid transparent;
+  border-radius: var(--radius-lg);
+  padding: 1rem 0;
+
   ul {
     list-style: none;
     padding: 0;

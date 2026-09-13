@@ -14,7 +14,7 @@
 .loadingIndicatorWrapper {
   background-color: var(--black);
   border: 0.0625rem solid transparent;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-md);
   padding: 1rem;
 }
 

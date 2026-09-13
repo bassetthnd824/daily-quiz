@@ -1,4 +1,5 @@
 export enum QuestionStatus {
-    ACTIVE = 'A',
-    PENDING = 'P',
+  ACTIVE = 'A',
+  PENDING = 'P',
+  REJECTED = 'R',
 }

@@ -4,7 +4,7 @@ import { withCsrf } from '@/util/csrf'
 import { requireSession } from '@/util/require-session'
 import { NextRequest, NextResponse } from 'next/server'
 
-const POST_handler = async (request: NextRequest) => {
+const PATCH_handler = async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const session = await requireSession()
 
@@ -18,9 +18,11 @@ const POST_handler = async (request: NextRequest) => {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await questionService.submitQuestion(quizUser, await request.json())
+    const { id } = await params
 
-    return NextResponse.json('Question Added', { status: 201 })
+    await questionService.reviewQuestion(quizUser, id, await request.json())
+
+    return new NextResponse(null, { status: 204 })
   } catch (error) {
     if (error instanceof QuestionError) {
       return new NextResponse(error.message, { status: error.status })
@@ -31,4 +33,4 @@ const POST_handler = async (request: NextRequest) => {
   }
 }
 
-export const POST = withCsrf(POST_handler)
+export const PATCH = withCsrf(PATCH_handler)

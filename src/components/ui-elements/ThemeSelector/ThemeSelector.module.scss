@@ -31,7 +31,7 @@
   cursor: pointer;
   user-select: none;
   border: 0.125rem solid var(--border);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-md);
   background-color: var(--surface);
   color: var(--foreground);
 

@@ -13,6 +13,12 @@
   & .navMenuItem {
     padding: 0.25rem 1rem;
   }
+
+  & .navMenuItem button {
+    display: block;
+    width: 100%;
+    text-align: left;
+  }
 }
 
 .homepageNav {

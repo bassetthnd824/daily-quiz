@@ -1,0 +1,51 @@
+@use '@/styles/mixins/_media-breakpoints.scss' as *;
+
+.panel {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 80%;
+  z-index: 1000;
+  background-color: var(--surface);
+  color: var(--foreground);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+
+  @include media-breakpoint-up('md') {
+    width: 40%;
+  }
+
+  @include media-breakpoint-up('lg') {
+    width: 25%;
+  }
+}
+
+.left {
+  left: 0;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.right {
+  right: 0;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+.close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+}
+
+.title {
+  margin-bottom: 1.5rem;
+  padding-right: 2.5rem;
+}
