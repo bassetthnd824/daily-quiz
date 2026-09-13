@@ -5,14 +5,13 @@ import { createContext, ReactNode, useContext, useEffect, useSyncExternalStore }
 export const THEMES = [
   { id: 'light', label: 'Light' },
   { id: 'dark', label: 'Dark' },
-  { id: 'bama', label: 'Roll Moon Controlled Water Level' },
-  { id: 'barn', label: 'War Bird of Prey / American Symbol of Freedom' },
+  { id: 'bama', label: 'Roll Lunar Controlled Sea Level' },
+  { id: 'barn', label: 'War Bird of Prey' },
 ] as const
 
 export type Theme = (typeof THEMES)[number]['id']
 
-export const isTheme = (value: string | null): value is Theme =>
-  THEMES.some((theme) => theme.id === value)
+export const isTheme = (value: string | null): value is Theme => THEMES.some((theme) => theme.id === value)
 
 type ThemeContextValue = {
   theme: Theme
