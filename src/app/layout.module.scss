@@ -14,12 +14,14 @@
 }
 
 .mainWrapper {
-  padding: 2rem;
+  padding: 1.25rem;
   margin: 5rem auto 0;
   max-width: 55rem;
-  min-width: 23.375rem;
+  width: 100%;
+  min-width: 0;
 
   @include media-breakpoint-up('md') {
     width: 90%;
+    padding: 2rem;
   }
 }
