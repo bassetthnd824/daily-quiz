@@ -1,5 +1,5 @@
 import 'server-only'
-import { MAX_DAILY_QUESTIONS, MAX_POINTS, QUESTION_TIME } from '@/constants/constants'
+import { isFirebaseEmulator, MAX_DAILY_QUESTIONS, MAX_POINTS, QUESTION_TIME } from '@/constants/constants'
 import { questionDao } from '@/dao/question.dao'
 import { quizDao } from '@/dao/quiz.dao'
 import { requireFirestore } from '@/firebase/server'
@@ -133,7 +133,7 @@ const ensureTodaysQuiz = async (uid: string): Promise<QuizView> => {
 
     quizDao.createQuiz(transaction, created)
 
-    if (process.env.NEXT_PUBLIC_APP_ENV !== 'emulator') {
+    if (!isFirebaseEmulator()) {
       questionDao.setLastUsedDate(transaction, questions)
     }
 

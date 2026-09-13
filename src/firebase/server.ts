@@ -1,3 +1,4 @@
+import { isFirebaseEmulator } from '@/constants/constants'
 import { cert, getApps, initializeApp, ServiceAccount } from 'firebase-admin/app'
 import { Firestore, getFirestore } from 'firebase-admin/firestore'
 import { Auth, getAuth } from 'firebase-admin/auth'
@@ -9,11 +10,17 @@ let firestore: Firestore | undefined = undefined
 let auth: Auth | undefined = undefined
 
 if (currentApps.length <= 0) {
-  // if (process.env.NEXT_PUBLIC_APP_ENV === 'emulator') {
-  //   process.env['FUNCTIONS_EMULATOR'] = 'true'
-  //   process.env['FIRESTORE_EMULATOR_HOST'] = process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PATH
-  //   process.env['FIREBASE_AUTH_EMULATOR_HOST'] = process.env.NEXT_PUBLIC_EMULATOR_AUTH_PATH
-  // }
+  if (isFirebaseEmulator()) {
+    process.env.FUNCTIONS_EMULATOR = 'true'
+
+    if (process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PATH) {
+      process.env.FIRESTORE_EMULATOR_HOST = process.env.NEXT_PUBLIC_EMULATOR_FIRESTORE_PATH
+    }
+
+    if (process.env.NEXT_PUBLIC_EMULATOR_AUTH_PATH) {
+      process.env.FIREBASE_AUTH_EMULATOR_HOST = process.env.NEXT_PUBLIC_EMULATOR_AUTH_PATH
+    }
+  }
 
   const app = initializeApp({
     credential: cert(serviceAccount as ServiceAccount),

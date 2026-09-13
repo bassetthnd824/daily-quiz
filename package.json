@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "emulators": "firebase emulators:exec 'npm test'"
+    "emulators": "firebase emulators:start --only auth,firestore",
+    "test:emulators": "firebase emulators:exec \"npm test\""
   },
   "dependencies": {
     "@tanstack/react-form": "^1.33.5",

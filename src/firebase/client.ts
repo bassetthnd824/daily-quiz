@@ -1,7 +1,8 @@
 'use client'
 
+import { isFirebaseEmulator } from '@/constants/constants'
 import { getApps, initializeApp } from 'firebase/app'
-import { Auth, /*connectAuthEmulator,*/ getAuth, inMemoryPersistence } from 'firebase/auth'
+import { Auth, connectAuthEmulator, getAuth, inMemoryPersistence } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -22,9 +23,13 @@ if (currentApps.length <= 0) {
   auth = getAuth(currentApps[0])
 }
 
-// if (process.env.NEXT_PUBLIC_APP_ENV === 'emulator') {
-//   connectAuthEmulator(auth, `http://${process.env.NEXT_PUBLIC_EMULATOR_AUTH_PATH}`)
-// }
+if (isFirebaseEmulator() && !auth.emulatorConfig) {
+  const authHost = process.env.NEXT_PUBLIC_EMULATOR_AUTH_PATH
+
+  if (authHost) {
+    connectAuthEmulator(auth, `http://${authHost}`, { disableWarnings: true })
+  }
+}
 
 auth.setPersistence(inMemoryPersistence)
 
