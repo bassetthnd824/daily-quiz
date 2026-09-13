@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CSRF_SECRET: ci-csrf-secret
+      NEXT_PUBLIC_FIREBASE_API_KEY: ci-dummy-key
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: dummy.firebaseapp.com
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ci-dummy
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: dummy.appspot.com
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '1'
+      NEXT_PUBLIC_FIREBASE_APP_ID: '1:1:web:ci'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare dummy Firebase service account
+        run: |
+          node <<'NODE'
+          const { generateKeyPairSync } = require('crypto')
+          const fs = require('fs')
+          const { privateKey } = generateKeyPairSync('rsa', {
+            modulusLength: 2048,
+            privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+          })
+          const account = JSON.stringify({
+            type: 'service_account',
+            project_id: 'ci-dummy',
+            private_key_id: 'ci',
+            private_key: privateKey,
+            client_email: 'ci@ci-dummy.iam.gserviceaccount.com',
+            client_id: '1',
+          })
+          fs.appendFileSync(process.env.GITHUB_ENV, `FIREBASE_SERVICE_ACCOUNT<<EOF\n${account}\nEOF\n`)
+          NODE
+
+      - name: Build
+        run: npm run build
+
+  ci:
+    name: CI
+    if: ${{ always() }}
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require test and build to succeed
+        run: |
+          echo "test=${{ needs.test.result }}"
+          echo "build=${{ needs.build.result }}"
+          test "${{ needs.test.result }}" = "success"
+          test "${{ needs.build.result }}" = "success"
