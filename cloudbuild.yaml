@@ -71,7 +71,7 @@ steps:
       - |
         set -euo pipefail
         npm ci --prefix src/firebase/functions
-        npx --yes firebase-tools@latest deploy --only functions --project "${PROJECT_ID}" --non-interactive
+        npx --yes firebase-tools@latest deploy --only functions --project "${PROJECT_ID}" --non-interactive --force
 
 availableSecrets:
   secretManager:
