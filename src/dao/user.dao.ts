@@ -49,9 +49,32 @@ const updateUserProfile = async (userId: string, updates: Pick<UserProfile, 'nic
   await userRef(userId).update({ ...updates })
 }
 
+const listUsers = async (): Promise<Array<{ uid: string } & UserProfile>> => {
+  const snapshot = await requireFirestore().collection(USERS).get()
+
+  return snapshot.docs.flatMap((doc) => {
+    const profile = toUserProfile(doc.data())
+    return profile ? [{ uid: doc.id, ...profile }] : []
+  })
+}
+
+const updateUserRoles = async (
+  userId: string,
+  updates: Partial<Pick<UserProfile, 'isAdmin' | 'canSubmitQuestions'>>,
+) => {
+  await userRef(userId).update({ ...updates })
+}
+
+const deleteUser = async (userId: string) => {
+  await userRef(userId).delete()
+}
+
 export const userDao = {
   getUser,
   getUserInTransaction,
   createUserProfile,
   updateUserProfile,
+  listUsers,
+  updateUserRoles,
+  deleteUser,
 }

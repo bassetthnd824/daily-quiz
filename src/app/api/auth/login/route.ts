@@ -19,6 +19,12 @@ const POST_handler = async (request: NextRequest) => {
     const { idToken } = parsed.output
 
     const decoded = await auth.verifyIdToken(idToken)
+    const authUser = await auth.getUser(decoded.uid)
+
+    if (authUser.disabled) {
+      return new NextResponse('Account is disabled', { status: 403 })
+    }
+
     const sessionCookie = await auth.createSessionCookie(idToken, {
       expiresIn: SESSION_MAX_AGE_SECONDS * 1000,
     })

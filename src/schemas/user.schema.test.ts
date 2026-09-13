@@ -1,6 +1,6 @@
 import * as v from 'valibot'
 import { describe, expect, it } from 'vitest'
-import { nicknameSchema, updateUserProfileSchema } from './user.schema'
+import { adminUserActionSchema, nicknameSchema, updateUserProfileSchema } from './user.schema'
 
 describe('nicknameSchema', () => {
   it('trims whitespace', () => {
@@ -20,5 +20,19 @@ describe('nicknameSchema', () => {
 describe('updateUserProfileSchema', () => {
   it('accepts a nickname update', () => {
     expect(v.parse(updateUserProfileSchema, { nickname: 'Ada' })).toEqual({ nickname: 'Ada' })
+  })
+})
+
+describe('adminUserActionSchema', () => {
+  it('accepts admin review actions', () => {
+    expect(v.parse(adminUserActionSchema, { action: 'grantAdmin' })).toEqual({ action: 'grantAdmin' })
+    expect(v.parse(adminUserActionSchema, { action: 'revokeAdmin' })).toEqual({ action: 'revokeAdmin' })
+    expect(v.parse(adminUserActionSchema, { action: 'revokeSubmitQuestions' })).toEqual({
+      action: 'revokeSubmitQuestions',
+    })
+  })
+
+  it('rejects unknown actions', () => {
+    expect(v.safeParse(adminUserActionSchema, { action: 'grantSubmitQuestions' }).success).toBe(false)
   })
 })
