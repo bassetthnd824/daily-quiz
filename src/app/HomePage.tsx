@@ -1,13 +1,18 @@
+'use client'
+
 import { MAX_DAILY_QUESTIONS, MAX_POINTS, QUESTION_TIME, REUSE_QUESTION_AFTER_DAYS } from '@/constants/constants'
+import { useAuth } from '@/context/user-context'
 import Link from 'next/link'
 import SignInButton from './sign-in/SignInButton'
 import classes from './page.module.scss'
 
 type HomePageProps = {
-  signedIn: boolean
+  initiallySignedIn: boolean
 }
 
-const HomePage = ({ signedIn }: HomePageProps) => {
+const HomePage = ({ initiallySignedIn }: HomePageProps) => {
+  const { currentUser } = useAuth()
+  const signedIn = currentUser !== null || initiallySignedIn
   const delaySeconds = QUESTION_TIME / 1000 / MAX_POINTS
 
   return (
