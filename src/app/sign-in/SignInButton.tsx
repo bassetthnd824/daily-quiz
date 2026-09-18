@@ -12,6 +12,7 @@ const SignInButton = () => {
     try {
       await loginGoogle()
       router.push('/')
+      router.refresh()
     } catch {
       return
     }

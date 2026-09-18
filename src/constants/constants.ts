@@ -8,6 +8,10 @@ export const ERROR_CODE_INVALID_CSRF: string = 'middleware/invalid-csrf-token'
 export const ERROR_CODE_INTERNAL_SERVER: string = 'server/internal-server-error'
 export const SESSION_COOKIE = 'daily-quiz-session'
 
+export const PUBLIC_PATHS = ['/', '/sign-in']
+
+export const isPublicPath = (pathname: string) => PUBLIC_PATHS.includes(pathname)
+
 export const REUSE_QUESTION_AFTER_DAYS = 30
 export const MAX_DAILY_QUESTIONS = 10
 export const MAX_POINTS = 10

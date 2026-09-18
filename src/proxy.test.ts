@@ -23,6 +23,10 @@ describe('proxy', () => {
     expect(response?.headers.get('location')).toBe('http://localhost:3000/sign-in')
   })
 
+  it('allows the homepage without a session cookie', () => {
+    expect(proxy(request('/'))).toBeUndefined()
+  })
+
   it('allows the sign-in page without a session cookie', () => {
     expect(proxy(request('/sign-in'))).toBeUndefined()
   })
