@@ -8,6 +8,7 @@
   flex-direction: column;
   gap: 1.25rem;
   list-style: none;
+  min-width: 0;
   padding: 1rem 1.25rem;
 
   @include media-breakpoint-up('md') {
@@ -19,9 +20,17 @@
     gap: 1rem;
     align-items: center;
     font-size: 1.5rem;
+    min-width: 0;
+  }
+
+  .displayName {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .totalScore {
     margin-left: auto;
+    flex-shrink: 0;
   }
 }

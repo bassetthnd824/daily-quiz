@@ -11,8 +11,8 @@ const SignInButton = () => {
   const handleLogin = async () => {
     try {
       await loginGoogle()
-      router.push('/')
       router.refresh()
+      router.push('/')
     } catch {
       return
     }
