@@ -35,7 +35,7 @@ const HomePage = ({ signedIn }: HomePageProps) => {
         </p>
       ) : (
         <div className={classes.signInPrompt}>
-          <p className={classes.paragraph}>Sign in to take today's quiz.</p>
+          <p className={classes.paragraph}>Sign in to take today&apos;s quiz.</p>
           <SignInButton />
         </div>
       )}
