@@ -1,5 +1,6 @@
 'use client'
 
+import { isPublicPath } from '@/constants/constants'
 import { auth } from '@/firebase/client'
 import { QuizUser } from '@/models/user-profile.model'
 import { csrfHeaders } from '@/util/get-cookie'
@@ -35,7 +36,7 @@ const UserContextProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch('/api/auth/session')
 
       if (!response.ok) {
-        if (window.location.pathname !== '/sign-in') {
+        if (!isPublicPath(window.location.pathname)) {
           router.push('/sign-in')
         }
 

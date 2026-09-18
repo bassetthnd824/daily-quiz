@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { SESSION_COOKIE } from '@/constants/constants'
+import { isPublicPath, SESSION_COOKIE } from '@/constants/constants'
 
 export const proxy = (request: NextRequest) => {
   // Presence-only: pages use requirePageSession / getSession so an expired
   // cookie cannot bounce /sign-in back to /.
   const { pathname } = request.nextUrl
 
-  if (!request.cookies.has(SESSION_COOKIE) && pathname !== '/sign-in') {
+  if (!request.cookies.has(SESSION_COOKIE) && !isPublicPath(pathname)) {
     return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 }
